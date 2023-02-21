@@ -1,0 +1,12 @@
+{
+	"markdown table template": 
+	{
+		"prefix": "table",
+		"body": [
+			"|  表头   | 表头  | 表头  |",
+			"|  :---:   | :---:  | :---: |",
+			"|  内容   | 内容  | 内容  |",
+		],
+		"description": "markdown 表格"
+	}
+}

@@ -1,0 +1,207 @@
+{
+	"Go header introduction": {
+		"prefix": "go-header",
+		"body": [
+			"// -*- coding:utf-8 -*-",
+			"// @Description: ",
+		],
+		"description": ""
+	},
+	"package": {
+		"prefix": "package",
+		"body": [
+			"package main",
+		],
+		"description": ""
+	},
+	"import 多行": {
+		"prefix": "import",
+		"body": [
+			"import (",
+			"    \"fmt\"",
+			")",
+		],
+		"description": ""
+	},
+	"main 函数": {
+		"prefix": "main",
+		"body": [
+			"func main() {",
+			"    fmt.Println(\"Hello World!\")",
+			"}",
+		],
+		"description": ""
+	},
+	"函数定义": {
+		"prefix": "func",
+		"body": [
+			"func hello(a int) (int) {",
+			"\treturn a",
+			"}",
+		],
+		"description": ""
+	},
+	"print red": {
+		"prefix": "print_red",
+		"body": [
+			"fmt.Println(\"\\033[31mError:字符串 (~_~)\\033[0m\")",
+		],
+		"description": ""
+	},
+	"print green": {
+		"prefix": "print_green",
+		"body": [
+			"fmt.Println(\"\\033[32mSuccess:字符串 (^_^)\\033[0m\")",
+		],
+		"description": ""
+	},
+	"print yellow": {
+		"prefix": "print_yellow",
+		"body": [
+			"fmt.Println(\"\\033[33mWarning:字符串 (-_-)\\033[0m\")",
+		],
+		"description": ""
+	},
+	"interface 定义": {
+		"prefix": "interface",
+		"body": [
+			"type Phone interface {",
+			"\tcall() int",
+			"}",
+		],
+		"description": ""
+	},
+	"interface 实现": {
+		"prefix": "interface_imple",
+		"body": [
+			"func (sphone SumsungPhone) call() int {",
+			"\tfmt.Println(\"This is a call from\", sphone.phoneType)",
+			"\treturn 2",
+			"}",
+		],
+		"description": ""
+	},
+	"结构体的定义": {
+		"prefix": "struct",
+		"body": [
+			"type SumsungPhone struct {",
+			"\tphoneType string",
+			"}",
+		],
+		"description": ""
+	},
+	"if ... else if ... else ...": {
+		"prefix": "if_else",
+		"body": [
+			"if a < 20 {",
+			"\tfmt.Printf(\"hello, world\")",
+			"} else if a == 20 {",
+			"\tfmt.Printf(\"hello, world\")",
+			"} else {",
+			"fmt.Printf(\"heloo\")",
+			"}",
+		],
+		"description": ""
+	},
+	"if": {
+		"prefix": "if",
+		"body": [
+			"if a < 20 {",
+			"\tfmt.Println(\"hello, world\")",
+			"}",
+		],
+		"description": ""
+	},
+	"switch ... case ...": {
+		"prefix": "switch",
+		"body": [
+			"switch marks {",
+			"case 90:",
+			"\tfmt.Println(\"hello, world\")",
+			"default:",
+			"\tfmt.Println(\"hello, world\")",
+			"}",
+		],
+		"description": ""
+	},
+	"select ... case ..., 用于并发": {
+		"prefix": "select",
+		"body": [
+			"var grade01, grade02 string",
+			"var ch01 chan string",
+			"select {",
+			"case grade01= <- ch01:",
+			"\tfmt.Println(\"hello, world\")",
+			"case ch01 <- grade02:",
+			"\tfmt.Println(\"hello, world\")",
+			"default:",
+			"\tfmt.Println(\"hello, world\")",
+			"}",
+		],
+		"description": ""
+	},
+	"for": {
+		"prefix": "for",
+		"body": [
+			"for j := 1; j <= 100; j++ {",
+			"\tfmt.Println(\"hello\")",
+			"}"
+		],
+		"description": ""
+	},
+	"for ... in ...": {
+		"prefix": "forin",
+		"body": [
+			"for _, val:= range slice {",
+			"\tfmt.Printf(\"%v\", val)",
+			"}"
+		],
+		"description": ""
+	},
+	"切片定义": {
+		"prefix": "slice",
+		"body": [
+			"arr := make([]int, 0)",
+		],
+		"description": ""
+	},
+	"通道定义, 带缓冲区": {
+		"prefix": "chan",
+		"body": [
+			"ch := make( chan int, 4)",
+		],
+		"description": ""
+	},
+	"集合定义": {
+		"prefix": "map",
+		"body": [
+			"m := make(map[string]string)",
+			"m[\"xiao\"] = \"ming\"",
+		],
+		"description": ""
+	},
+	"err": {
+		"prefix": "err",
+		"body": [
+			"if err != nil {",
+			"\tpanic(err)",
+			"}"
+		],
+		"description": ""
+	},
+	"时间戳转格式化时间": {
+		"prefix": "time_format",
+		"body": [
+			"time_format:=time.Unix(time.Now().Unix(), 0).Format(\"2006/01/02 15:04:05\")"
+		],
+		"description": ""
+	},
+	"格式化时间转时间戳": {
+		"prefix": "time",
+		"body": [
+			"t1, _ := time.Parse(\"2006/01/02 15:04:05\", \"1970/01/01 00:00:05\")",
+			"fmt.Printf(\"%v\\n\", t1.Unix())"
+		],
+		"description": ""
+	}
+}

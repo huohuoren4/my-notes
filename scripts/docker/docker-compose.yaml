@@ -1,0 +1,53 @@
+version: '3'
+services:
+  mysql:
+    image: swr.cn-north-4.myhuaweicloud.com/wx-2022/mysql-x86_x64:5.7
+    ports:
+    - "3306:3306"
+    volumes:                   
+    - /etc/localtime:/etc/localtime:ro          # 容器同步宿主机时间
+    - /etc/mysql/conf.d/:/etc/mysql/conf.d/:ro  # mysql配置文件
+    - /var/lib/mysql/:/var/lib/mysql/:rw        # mysql数据文件
+    - /var/log/mysql/:/var/log/mysql/:rw        # mysql日志文件, 需要设置权限为777, 否则无法写入日志
+    environment:
+    - MYSQL_ROOT_PASSWORD=123456
+    networks:
+    - mynet
+
+  nginx:
+    image: swr.cn-north-4.myhuaweicloud.com/wx-2022/nginx-x86_x64:1.22-alpine
+    ports:
+    - "80:80"
+    - "443:443"
+    volumes:                   
+    - /etc/localtime:/etc/localtime:ro          # 容器同步宿主机时间
+    - /etc/nginx/conf.d/:/etc/nginx/conf.d/:ro  # nginx的配置文件
+    - /var/log/nginx/:/var/log/nginx/:rw        # nginx的日志文件
+    networks:
+    - mynet
+
+  redis:
+    image: swr.cn-north-4.myhuaweicloud.com/wx-2022/redis-x86_x64:6.2-alpine
+    volumes:                   
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/redis/conf.d/:/etc/redis/conf.d/:ro  # nginx的配置文件
+    ports:
+    - "6379:6379"
+    networks:
+    - mynet
+
+  myadmin:
+    image: swr.cn-north-4.myhuaweicloud.com/wx-2022/phpmyadmin-x86_x64:5.2
+    volumes:                   
+    - /etc/localtime:/etc/localtime:ro
+    ports:
+    - "8888:80"
+    environment:
+    - PMA_HOST=mysql
+    networks:
+    - mynet
+    depends_on:
+    - mysql
+
+networks:
+  mynet:

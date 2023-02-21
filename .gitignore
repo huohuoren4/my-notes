@@ -1,0 +1,9 @@
+**/.venv
+**/.DS_Store
+**/node_modules
+**/__pycache__
+**/migrations
+**/.vscode
+**/.idea
+密码.md
+

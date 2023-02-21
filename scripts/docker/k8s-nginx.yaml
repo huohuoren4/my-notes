@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: golang-demo
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: golang-demo
+  template:
+    metadata:
+      labels:
+        app: golang-demo
+    spec:
+      containers:
+      - image: swr.cn-north-4.myhuaweicloud.com/wx-2022/golang-demo-x86_64:v1.1.8
+        name: container-0
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1000Mi
+          requests:
+            cpu: 700m
+            memory: 700Mi
+      imagePullSecrets:
+      - name: default-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: golang-demo-service
+spec:
+  selector:
+    app: golang-demo
+  ports:
+  - name: service01
+    targetPort: 80
+    port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: test-ingress
+spec:
+  rules:
+    - host: test-ingress.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: golang-demo-service
+                port:
+                  number: 80

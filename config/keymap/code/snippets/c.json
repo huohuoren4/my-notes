@@ -1,0 +1,42 @@
+{
+	"print_green": {
+		"prefix": "print_green",
+		"body": [
+			"printf(\"\\033[32mSuccess:字符串 (^_^)\\033[0m\\n\");",
+		],
+		"description": ""
+	},
+	"print_red": {
+		"prefix": "print_red",
+		"body": [
+			"printf(\"\\033[31mError:字符串 (~_~)\\033[0m\\n\");",
+		],
+		"description": ""
+	},
+	"print_yellow": {
+		"prefix": "print_yellow",
+		"body": [
+			"printf(\"\\033[33mWarning:字符串 (-_-)\\033[0m\\n\");",
+		],
+		"description": ""
+	},
+	"scanf": {
+		"prefix": "scanf",
+		"body": [
+			"scanf(\"%d\", &a);",
+		],
+		"description": ""
+	},
+	"时间格式化": {
+		"prefix": "time_format",
+		"body": [
+			"char * formatNowTime(){",
+			"\ttime_t t1= time(NULL);",
+			"\tstatic char p[50];",
+			"\tstrftime(p, sizeof(p), \"%Y-%m-%d %H:%M:%S\", localtime(&t1));",
+			"return p;",
+			"}"
+		],
+		"description": ""
+	}
+}

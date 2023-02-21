@@ -1,0 +1,248 @@
+{
+	"格式化时间01: yyyy-mm-dd hh:mm:ss": {
+		"prefix": "time_format",
+		"body": [
+			"date +\"%Y-%m-%d %H:%M:%S\""
+		],
+		"description": ""
+	},
+	"格式化时间02: yyyymmddhhmmss": {
+		"prefix": "time_format",
+		"body": [
+			"date +\"%Y%m%d%H%M%S\"",
+		],
+		"description": ""
+	},
+	"时间戳: 1670336045": {
+		"prefix": "time",
+		"body": [
+			"date +\"%s\"",
+		],
+		"description": ""
+	},
+	"echo red": {
+		"prefix": "echo red",
+		"body": [
+			"echo -e \"\\033[31mError:字符串 (~_~)\\033[0m\"",
+		],
+		"description": ""
+	},
+	
+	"echo green": {
+		"prefix": "echo green",
+		"body": [
+			"echo -e \"\\033[32mSuccess:字符串 (^_^)\\033[0m\"",
+		],
+		"description": ""
+	},
+	
+	"echo yellow": {
+		"prefix": "echo yellow",
+		"body": [
+			"echo -e \"\\033[33mWarning:字符串 (-_-)\\033[0m\"",
+		],
+		"description": ""
+	},
+	"shell header introduction": {
+		"prefix": "shell-header",
+		"body": [
+			"#!/bin/bash",
+			"# -*- coding:utf-8 -*-"
+		],
+		"description": ""
+	},
+	"find 文件名": {
+		"prefix": "find",
+		"body": [
+			"find . -name *.sh",
+		],
+		"description": ""
+	},
+	"awk 文件名": {
+		"prefix": "awk",
+		"body": [
+			"awk '/^$/{print \"Blank line\"}' test.txt",
+		],
+		"description": ""
+	},
+	"sed 文件名": {
+		"prefix": "sed",
+		"body": [
+			"sed -i 's/22/goto/g' test.txt",
+		],
+		"description": ""
+	},
+	"cat > 文件名 <<EOF": {
+		"prefix": "cat",
+		"body": [
+			"cat > install.sh <<EOF",
+			"echo \"wjoewoeo\"",
+			"EOF",
+		],
+		"description": ""
+	},
+	"tar 打包": {
+		"prefix": "tar",
+		"body": [
+			"tar -zcvf 压缩包名 文件列表",
+		],
+		"description": ""
+	},
+	"tar 解包": {
+		"prefix": "tar",
+		"body": [
+			"tar -zxvf 压缩包名 -C 文件夹",
+		],
+		"description": ""
+	},
+	"curl 获取请求头": {
+		"prefix": "curl",
+		"body": [
+			"curl -I url地址",
+		],
+		"description": ""
+	},
+	"curl get请求": {
+		"prefix": "curl get",
+		"body": [
+			"curl  url地址",
+		],
+		"description": ""
+	},
+	"curl post请求": {
+		"prefix": "curl post",
+		"body": [
+			"curl -X POST -H \"Content-Type:application/json\" -d '{\"post_data\":\"live\"}' url地址",
+		],
+		"description": ""
+	},
+	"curl 上传文件": {
+		"prefix": "curl file",
+		"body": [
+			"curl -F 'csl=@/home/xxxx/xxx.csl' url地址",
+		],
+		"description": ""
+	},
+	"ssh 连接": {
+		"prefix": "ssh",
+		"body": [
+			"ssh root@192.168.0.39",
+		],
+		"description": ""
+	},
+	"scp 文件传送": {
+		"prefix": "scp",
+		"body": [
+			"scp -r root@192.168.0.39:服务器文件目录 本地文件目录",
+		],
+		"description": ""
+	},
+	"netstat 查看端口": {
+		"prefix": "netstat",
+		"body": [
+			"netstat -tlunp | grep 22",
+		],
+		"description": ""
+	},
+	"read 输入": {
+		"prefix": "read",
+		"body": [
+			"read -p \"input a val:\" a",
+		],
+		"description": ""
+	},
+	"if ... else ...": {
+		"prefix": "if",
+		"body": [
+			"if [[ -n $num ]]; then",
+			"\tcommand1",
+			"else",
+			"\tcommand2",
+			"fi",
+		],
+		"description": ""
+	},
+	"if ... elif ... else ...": {
+		"prefix": "ifel",
+		"body": [
+			"if [[ $num == 0 ]]; then",
+			"\tcommand1",
+			"elif [[ $num == 1 ]]",
+			"\tcommand1",
+			"else",
+			"\tcommand1",
+			"fi",
+		],
+		"description": ""
+	},
+	"case ... esac": {
+		"prefix": "case",
+		"body": [
+			"case $aNum in",
+			"\t1)  echo '你选择了 1'",
+			"\t;;",
+			"\t2)  echo '你选择了 1'",
+			"\t;;",
+			"esac",
+		],
+		"description": ""
+	},
+	"for 语句": {
+		"prefix": "for",
+		"body": [
+			"for ((i=0;i<10;i++)); do",
+			"\tcommand1",
+			"done",
+		],
+		"description": ""
+	},
+	"for...in... 语句": {
+		"prefix": "forin",
+		"body": [
+			"for variables in $(seq 10); do",
+			"\tcommand1",
+			"done",
+		],
+		"description": ""
+	},
+	"while 语句": {
+		"prefix": "while",
+		"body": [
+			"while condition; do",
+			"\tcommand1",
+			"done",
+		],
+		"description": ""
+	},
+	"function 语句": {
+		"prefix": "func",
+		"body": [
+			"function print(){",
+			"\techo \"获取函数参数个数: ${#}\"",
+			"}",
+			"print 1 2 3 4  # 调用函数",
+		],
+		"description": ""
+	},
+	"ln 软链接": {
+		"prefix": "ln",
+		"body": [
+			"ln -s oldfile newfile",
+		],
+		"description": ""
+	},
+	"firewall 增加端口": {
+		"prefix": "firewall-cmd",
+		"body": [
+			"firewall-cmd --permanent --zone=public --add-port=8080/tcp",
+		],
+		"description": ""
+	},
+	"随机数": {
+		"prefix": "random",
+		"body": [
+			"rand=$(( RANDOM % 4 ))",
+		],
+		"description": ""
+	},
+}
