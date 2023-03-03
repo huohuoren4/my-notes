@@ -2907,7 +2907,6 @@
 
     if __name__ == '__main__':
         asyncio.run(main())
-
     ```
 
 #### 8. Web框架: Flask
@@ -3018,33 +3017,88 @@
     if __name__ == '__main__':
         app.run(host="0.0.0.0", port=8080)
     ```
+
 ##### 8.2 数据库
-- Flask-SQLAlchemy
-```python
-# 数据库引擎
-# MySQL:	mysql://username:password@hostname/database
-# Postgres:	postgresql://username:password@hostname/database
-# SQLite:	sqlite:///绝对路径, 比如: sqlite:////db/test.db
-# 安装Flask-SQLAlchemy插件: pip install flask-sqlalchemy
+- Flask-SQLAlchemy的配置
+    ```python
+    # 数据库引擎
+    # MySQL:	mysql://username:password@hostname/database
+    # Postgres:	postgresql://username:password@hostname/database
+    # SQLite:	sqlite:///绝对路径, 比如: sqlite:////db/test.db
+    # 安装Flask-SQLAlchemy插件: pip install flask-sqlalchemy 
+    # 安装mysql驱动插件: pip install pymysql
 
-# mysql数据库连接示例
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:123456@192.168.56.210/test'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-db = SQLAlchemy(app)
-class User(db.Model):
-    """定义数据模型"""
-    __tablename__ = 'blog_user'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
-    email = db.Column(db.String(120), unique=True)
-    def __init__(self, username, email):
-        self.username = username
-        self.email = email
-    def __repr__(self):
-        return '<User %r>' % self.username
+    # mysql数据库连接示例
+    from flask import Flask
+    from flask_sqlalchemy import SQLAlchemy
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@192.168.56.210/test'
+    db = SQLAlchemy(app)
+
+    # 检测数据是否连接成功
+    with app.app_context():
+        with db.engine.connect() as conn:
+            # 执行原生SQL语句: conn.execute(text("{SQL语句}"))
+            rs = conn.execute(text("show databases;"))
+            print(rs.fetchall())
+    ```
+
+- 数据库的增删改查
+    ```python
+    from flask import Flask
+    from flask_sqlalchemy import SQLAlchemy
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@192.168.56.210/test'
+    db = SQLAlchemy(app)
+    
+    #### 创建表
+    #### 常用的字段类型
+    # 类型名    python接收类型      mysql生成类型   说明
+    # Integer   int                 int             整型
+    # Float     float               float           浮点型. 可以指定总长度和小数点后位数, 比如: db.float(precision="10,2")
+    # Numeric   float               decimal         浮点型. 可以指定总长度和小数点后位数, 比如: db.float(precision="10,2")
+    # Boolean   bool                tinyint         整型, 只占1个字节
+    # Text      str                 text            文本类型, 最大64KB
+    # LongText  str                 longtext        文本类型, 最大4G
+    # String    str                 varchar         变长字符串, 必须限定长度
+    # Date      datetime.date       date            日期
+    # DateTime  datetime.datetime   datetime        日期和时间
+    # Time      datetime.time       time            时间
+
+    ##### db.Column()
+    # 选项名           说明
+    # name             字段在数据库变种的名称. 如果没有设置, 则使用此属性名作为字段名称
+    # primary_key      如果为True, 表示该字段为表的主键, 默认自增
+    # autoincrement    如果为True, 数据自增
+    # unique           如果为True, 代表这列设置唯一约束
+    # nullable         如果为False, 代表这列设置非空约束
+    # server_default   为这列设置默认值
+    # index            如果为True, 为这列创建索引, 提高查询效率
+    # comment          在创建表时的注释
+
+    class User(db.Model):
+        """创建用户表"""
+        __tablename__ = 'blog_user'
+        id = db.Column(db.Integer(), primary_key=True)
+        username = db.Column(db.String(50), nullable=False)
+        age = db.Column(db.Integer(), nullable=False, server_default="20")
+        price = db.Column(db.Numeric("10,2"), nullable=False)
+        description = db.Column(db.String(255), nullable=False)
+        group_id = db.Column(db.String(20), nullable=False, comment="用户组ID")
+
+    class UserGroup(db.Model):
+        """创建用户组"""
+        __tablename__ = 'blog_group'
+        id = db.Column(db.Integer(), primary_key=True)
+        group_name = db.Column(db.String(20), server_default="小学组", unique=True, nullable=False, comment="用户组名")
+
+    if __name__ == '__main__':
+        with app.app_context():
+            # 如果存在表就删除, 再重新创建表
+            db.drop_all()
+            db.create_all()
+
+    # 插入数据
 
 
-```
+    ```
