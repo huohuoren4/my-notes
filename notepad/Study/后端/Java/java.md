@@ -13,30 +13,26 @@
   ```shell
   #/bin/bash
   # -*- coding:utf-8 -*-
-  # @Emoj: （￣︶￣）↗　
-  # @Time: DATE TIME
-  # @Author: wangxi
-  # @Email: 674860357@qq.com
   # @File: java-install.sh
   # @Description: 
-  # java8 的安装
+  # java-1.8 的安装
   # linux 版本: Centos7.8-x86_x64
 
   # 安装java的依赖
   yum -y install gcc  wget vim  net-tools
 
-  # 下载 java8
+  # 下载 java-1.8
   wget -O /root/jdk-8u202-linux-x64.tar.gz \
   https://repo.huaweicloud.com/java/jdk/8u202-b08/jdk-8u202-linux-x64.tar.gz
 
-  # 解压java8
+  # 解压java-1.8
   tar -zxvf /root/jdk-8u202-linux-x64.tar.gz -C /root/
   mv /root/jdk1.8.0_202 /usr/local/java8
 
   # 配置java JDK环境
-  echo -e "export JAVA_HOME=/usr/local/java8 \n\
-  export PATH=\${PATH}:\${JAVA_HOME}/bin \n\
-  export CLASSPATH=.:\${JAVA_HOME}/lib/dt.jar:\${JAVA_HOME}/lib/tools.jar \n" >> /etc/profile
+  echo 'export JAVA_HOME=/usr/local/java8
+  export PATH=${PATH}:${JAVA_HOME}/bin
+  export CLASSPATH=.:${JAVA_HOME}/lib/dt.jar:${JAVA_HOME}/lib/tools.jar' >> /etc/profile
 
   # 环境变量生效
   . /etc/profile
@@ -51,10 +47,6 @@
   ```shell
   #/bin/bash
   # -*- coding:utf-8 -*-
-  # @Emoj: （￣︶￣）↗　
-  # @Time: DATE TIME
-  # @Author: wangxi
-  # @Email: 674860357@qq.com
   # @File: java-uninstall.sh
   # @Description: 
   # java8 的卸载

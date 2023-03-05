@@ -976,18 +976,3 @@
         fi
     done
     ```  
-
-- 增加内存使用率
-    ```shell
-    #!/bin/bash
-    # 使用虚拟内存构造内存消耗
-    mkdir /tmp/memory
-    mount -t tmpfs -o size=3024M tmpfs /tmp/memory
-    # 将1G=1M*1024的数据写入到/tmp/memory/block
-    dd if=/dev/zero of=/tmp/memory/block bs=1M  count=1024
-    # 释放消耗的虚拟内存
-    sleep 300s
-    rm -rf /tmp/memory/block
-    umount /tmp/memory
-    rm -rf /tmp/memory
-    ```

@@ -1355,7 +1355,7 @@
             - "3306:3306"
             volumes:                   
             - /etc/localtime:/etc/localtime:ro          # 容器同步宿主机时间
-            - /etc/mysql/conf.d/:/etc/mysql/conf.d/:ro  # mysql配置文件
+            - /etc/mysql/conf.d/:/etc/mysql/conf.d/:ro  # mysql配置文件, 需要手动赋予文件夹777权限
             - /var/lib/mysql/:/var/lib/mysql/:rw        # mysql数据文件, 需要手动赋予文件夹777权限
             - /var/log/mysql/:/var/log/mysql/:rw        # mysql日志文件, 需要手动赋予文件夹777权限
             environment:
@@ -1367,7 +1367,7 @@
             image: swr.cn-north-4.myhuaweicloud.com/wx-2022/redis-x86_x64:6.2
             volumes:                   
             - /etc/localtime:/etc/localtime:ro
-            - /etc/redis/conf.d/:/etc/redis/conf.d/:ro  # redis配置文件
+            - /etc/redis/conf.d/:/etc/redis/conf.d/:ro  # redis配置文件, 需要手动赋予文件夹777权限
             - /var/lib/redis/:/var/lib/redis/:rw        # redis数据文件, 需要手动赋予文件夹777权限
             - /var/log/redis/:/var/log/redis/:rw        # redis日志文件, 需要手动赋予文件夹777权限
             ports:
@@ -1400,7 +1400,7 @@
 
         # 创建mysql文件夹
         mkdir -p  /etc/mysql/conf.d/ /var/lib/mysql/  /var/log/mysql/
-        chmod 777 /var/lib/mysql/  /var/log/mysql/
+        chmod 777 /var/lib/mysql/  /var/log/mysql/ /etc/mysql/
         # 创建mysql配置文件
         touch /etc/mysql/conf.d/my.conf
         cat > /etc/mysql/conf.d/my.conf <<EOF
@@ -1484,7 +1484,7 @@
 
         # 创建redis文件夹
         mkdir -p  /etc/redis/conf.d/ /var/lib/redis/  /var/log/redis/
-        chmod 777 /var/lib/redis/  /var/log/redis/
+        chmod 777 /var/lib/redis/  /var/log/redis/ /etc/redis/
         # 创建redis配置文件
         touch /etc/redis/conf.d/redis.conf
         cat > /etc/redis/conf.d/redis.conf <<EOF
