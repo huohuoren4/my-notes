@@ -3098,7 +3098,26 @@
             db.drop_all()
             db.create_all()
 
-    # 插入数据
+            # 插入数据
+            users = [
+                User(username="小唐", age=0, price=12.30, description="广东省深圳市松白路", group_id=1),
+                User(username="小明", age=13, price=30.00, description="美国洛杉矶", group_id=1),
+                User(username="小章", age=70, price=89.00, description="英国伦敦", group_id=3),
+                User(username="王小名", age=40, price=45.00, description="法国巴黎", group_id=2),
+                User(username="艾伦", age=1, price=14.00, description="古巴比伦", group_id=2),
+                User(username="李冰", age=36, price=45.63, description="中国上海", group_id=1)
+            ]
+            db.session.add_all(users)
+            groups = [
+                UserGroup(id=1, group_name="小学组"),
+                UserGroup(id=2, group_name="中学组"),
+                UserGroup(id=3, group_name="大学组")
+            ]
+            db.session.add_all(groups)
+            db.session.commit()
+
+            # 查询结果
+            
 
 
     ```
