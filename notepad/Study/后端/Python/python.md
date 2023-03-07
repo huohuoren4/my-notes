@@ -3086,11 +3086,28 @@
         description = db.Column(db.String(255), nullable=False)
         group_id = db.Column(db.String(20), nullable=False, comment="用户组ID")
 
+        def __repr__(self):
+            return json.dumps({
+                "id": self.id,
+                "username": self.username,
+                "age": self.age,
+                "price": str(self.price),
+                "description": self.description,
+                "group_id": self.group_id,
+            }, ensure_ascii=False)
+
     class UserGroup(db.Model):
         """创建用户组"""
         __tablename__ = 'blog_group'
         id = db.Column(db.Integer(), primary_key=True)
         group_name = db.Column(db.String(20), server_default="小学组", unique=True, nullable=False, comment="用户组名")
+        
+        def __repr__(self):
+            return json.dumps({
+                "id": self.id,
+                "group_name": self.group_name
+            }, ensure_ascii=False)
+
 
     if __name__ == '__main__':
         with app.app_context():
@@ -3116,8 +3133,43 @@
             db.session.add_all(groups)
             db.session.commit()
 
-            # 查询结果
-            
+            # 查询数据
+            # all(): 获取所有的查询结果
+            # first(): 获取第一个查询结果
+            # filter(UserGroup.id < 3, UserGroup.group_name=="小学组"): 比较查询
+            # filter(UserGroup.group_name.like("%组%")): 模糊查询
+            # in_(), notin_(): 属于, 不属于
+            # filter(UserGroup.id.in_([1, 2, 3, 4])): 范围查询
+            # filter(UserGroup.group_name == None): 判断为空
+            # filter(UserGroup.group_name.like("%组%")): 模糊查询
+            # 逻辑运算: or_, and_, not_
+            # filter(or_(UserGroup.id < 3, UserGroup.group_name=="小学组")): 模糊查询
+            # 分组
+            # group_by()和having(UserGroup.group_name): 分组
+            # 排序: 默认升序排列
+            # order_by(UserGroup.group_name)
+            # order_by(UserGroup.group_name.desc()):  # 按照降序排列
+            # 分页查询:
+            # limit(12), offset(0): 类似与sql中的 limit 0, 12
+            # 聚合函数: func.count(), func.sum(), func.min()
+            # 取别名: label("count")
+            # rs = db.session.query(UserGroup, func.sum(UserGroup.id).label("count")).group_by(UserGroup.group_name).all()
+            # 去重: distinct(UserGroup.id)
+            # rs = db.session.query(UserGroup).filter(UserGroup.id.in_([1, 2, 3, 4])).all()
+            # 关联查询: join()-内连接(inner join), outerjoin()-左连接(left join)
+            rs = db.session.query(UserGroup, User).join(UserGroup, User.group_id == UserGroup.id).all()
+            # 子查询: subquery()
+            # 查询各个分组中, 年纪最大的人名和对应的年龄
+            subset = db.session.query(User.group_id, func.max(User.age).label("max")).group_by(User.group_id).subquery()
+            res = db.session.query(User.id, User.age, UserGroup.group_name).filter(subset.c.max == User.age ).join(UserGroup, UserGroup.id == User.group_id).join(subset, subset.c.group_id == User.group_id)
+            print(res)
 
+            # 更新数据
+            res = db.session.query(User).filter(User.age == 70).update({"age": 60})
+            db.session.commit()
+
+            # 删除数据
+            res = db.session.query(User).filter(User.age == 60).delete()
+            db.session.commit()
 
     ```
