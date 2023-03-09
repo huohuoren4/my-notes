@@ -111,6 +111,7 @@
     docker run -itd # 后台运行
     --rm \  # 存在相同的容器就删除
     --restart always \ # 容器退出后总是重启
+    --network=host  \  # 主机模式启动
     --name string \  # 容器的名字
     --net mynet \  # 特定的网络, 可以用现有的,也可以用docker network创建
     -h nginx-test \  # 容器内主机名
@@ -1345,7 +1346,7 @@
     ```
 
 - 部署数据库
-    - docker-compose.yml文件: mysql + redis + phpmyadmin + nginx
+    - docker-compose.yml文件: mysql + redis + phpmyadmin
         ```yml
         version: '3'
         services:
@@ -1656,37 +1657,6 @@
         cd $HOME/db && docker-compose up -d
         echo -e "\033[32m所有数据库镜像创建成功!!!(^_^)\033[0m"
         ```
-
-##### 1.6 Docker-compose 部署项目
-- 部署 SpringBoot 项目
-   - Dockerfile文件
-       ```shell
-       # 以JDK8 为基础镜像
-       FROM openjdk:8
-       # 描述
-       LABEL description="Java 8"
-       # 暴露接口
-       EXPOSE 8088
-       # 将主机中的jar包添加到镜像中
-       ADD /docker_images-0.0.1-SNAPSHOT.jar docker_images-0.0.1-SNAPSHOT.jar
-       # 运行jar包
-       ENTRYPOINT ["java","-jar","docker_images-0.0.1-SNAPSHOT.jar"]
-       ```
-   - Docker-compose.yml文件
-       ```yml
-       version: "3"
-       services:
-         test:
-           container_name: java_test  # 配置容器名
-           build:
-             context: .
-             dockerfile: Dockerfile
-           image: java/test:8.0.0 # 指定镜像名
-           ports:
-           - "8088:8088"
-           volumes:
-           - /logs:/logs # 创建容器数据卷
-       ```
 
 #### 2. K8s(kubernetes)
 ##### 2.1 K8S安装

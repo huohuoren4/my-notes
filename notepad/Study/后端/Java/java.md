@@ -67,8 +67,8 @@
   java -version
   echo -e "\033[32mSuccess: java 卸载成功 (^_^)\033[0m"
   echo ""
-  
   ```
+  
 ---
 #### 2. Maven相关知识
 ##### 2.1 简介
@@ -202,6 +202,9 @@
 - 添加项目
   - 步骤：点击`New Item`,填写项目名字，类型
   - `Build Triggers`: 选择`Poll SCM`, 意思是检测到源代码发生改变的时候重新构建项目，不然不会去构建
+
+##### 3.4 打包Jenkins镜像
+##### 3.4 打包Jmeter镜像
 
 ---
 #### 4. Java 编程
