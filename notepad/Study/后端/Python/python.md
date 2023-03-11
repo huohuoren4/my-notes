@@ -140,11 +140,10 @@
     - dockerfile文件, 放在项目的根目录中
         ```dockerfile
         FROM python:3.10-alpine3.17
-        WORKDIR /usr/src/app
+        WORKDIR /app
         COPY . .
-        RUN mkdir ~/.pip && touch ~/.pip/pip.conf; \
-            echo -e "[global]\nindex-url = https://repo.huaweicloud.com/repository/pypi/simple\ntrusted-host = repo.huaweicloud.com\ntimeout = 120" > ~/.pip/pip.conf; \
-            pip install --no-cache-dir -r requirements.txt; \
+        RUN  pip install -r requirements.txt --index-url https://repo.huaweicloud.com/repository/pypi/simple \
+            --trusted-host repo.huaweicloud.com; \
             mkdir -p /var/log/python-demo;
         EXPOSE 8080
         CMD python main.py

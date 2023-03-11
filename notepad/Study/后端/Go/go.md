@@ -297,7 +297,7 @@
         ```dockerfile
         FROM golang:1.19.5-alpine3.17 As buildStage
         WORKDIR /go/src
-        ADD . /go/src
+        COPY . /go/src
         RUN  go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct; \
              go mod tidy; \
              go build -o main

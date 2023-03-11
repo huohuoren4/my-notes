@@ -8,7 +8,7 @@
 - 变量名：`Path`
   变量值：`%JAVA_HOME%\bin;%JAVA_HOME%\jre\bin;`
 
-##### 1.2 Linux 环境配置
+##### 1.2 Java-8的安装
 - java8 的安装
   ```shell
   #/bin/bash
@@ -32,16 +32,15 @@
   # 配置java JDK环境
   echo 'export JAVA_HOME=/usr/local/java8
   export PATH=${PATH}:${JAVA_HOME}/bin
-  export CLASSPATH=.:${JAVA_HOME}/lib/dt.jar:${JAVA_HOME}/lib/tools.jar' >> /etc/profile
+  export CLASSPATH=.:${JAVA_HOME}/lib/dt.jar:${JAVA_HOME}/lib/tools.jar' >> $HOME/.bashrc
 
   # 环境变量生效
-  . /etc/profile
+  . $HOME/.bashrc
 
   echo ""
   java -version
   echo -e "\033[32mSuccess: java 安装成功 (^_^)\033[0m"
   echo ""
-  
   ```
 - java8 的卸载
   ```shell
@@ -56,19 +55,58 @@
   rm -rf /usr/local/java8
 
   # 删除java配置语句
-  sed -i '/export JAVA_HOME=\/usr\/local\/java8/d' /etc/profile
-  sed -i '/export PATH=\${PATH}:\${JAVA_HOME}\/bin/d' /etc/profile
-  sed -i '/export CLASSPATH=.:\${JAVA_HOME}\/lib\/dt.jar/d' /etc/profile
+  sed -i '/export JAVA_HOME=\/usr\/local\/java8/d' $HOME/.bashrc
+  sed -i '/export PATH=\${PATH}:\${JAVA_HOME}\/bin/d' $HOME/.bashrc
+  sed -i '/export CLASSPATH=.:\${JAVA_HOME}\/lib\/dt.jar/d' $HOME/.bashrc
 
   # 环境变量生效
-  . /etc/profile
+  . $HOME/.bashrc
 
   echo ""
   java -version
   echo -e "\033[32mSuccess: java 卸载成功 (^_^)\033[0m"
   echo ""
   ```
-  
+##### 1.3 构建Java镜像
+- 构建 SpringBoot 镜像
+    ```dockerfile
+    FROM maven:3.8-jdk-8 As buildStage
+    WORKDIR /app/src
+    COPY . .
+    RUN  mkdir -p $HOME/.m2/; \
+        mv settings.xml $HOME/.m2/; \
+        mvn clean package -Dmaven.test.skip=true;
+
+    FROM openjdk:8-alpine
+    WORKDIR /app
+    COPY --from=buildStage /app/src/target/demo-0.0.1-SNAPSHOT.jar /app/
+    EXPOSE 8080
+    CMD java -jar demo-0.0.1-SNAPSHOT.jar
+    ```
+
+- 构建 Jenkins 镜像
+    ```dockerfile
+    FROM openjdk:8-alpine
+    WORKDIR /app
+    COPY . .
+    EXPOSE 8080
+    CMD java -jar jenkins.war
+    ```
+    
+- 构建 Jmeter 镜像
+    ```dockerfile
+    FROM openjdk:8-alpine
+    WORKDIR /jmeter
+    ENV JMETER_VERSION=5.4.3
+    COPY . .
+    EXPOSE 1099
+    RUN cd bin/; \
+        sed -i 's/#server.rmi.ssl.disable=false/server.rmi.ssl.disable=true/g' jmeter.properties; \
+        sed -i 's/#server.rmi.localport=4000/server.rmi.localport=37000/g' jmeter.properties
+    # HOST_NAME: host ip, such as 192.168.56.12
+    CMD ./bin/jmeter-server -Djava.rmi.server.hostname=${HOST_NAME}
+    ```
+    - 运行 Jmeter 镜像: `docker run --network=host -e HOST_NAME=192.168.56.210 -d 7154f7511d1c`
 ---
 #### 2. Maven相关知识
 ##### 2.1 简介
@@ -79,16 +117,59 @@
 - `Windows`中添加环境变量
   - 新建系统变量 `MAVEN_HOME`，变量值：`E:\Maven\apache-maven-3.3.9`
   - 编辑系统变量 `Path`，添加变量值：`;%MAVEN_HOME%\bin`
-- `Linux`中添加环境变量
-  - 下载解压安装包
-    - `wget https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz -O  apache-maven-3.8.6.tar.gz `
-    - `tar -xvf  apache-maven-3.8.6.tar.gz`
-    - `sudo mv -f apache-maven-3.8.6 /usr/local/`
-  - 编辑 `/etc/profile` 文件 `sudo vim /etc/profile`，在文件末尾添加如下代码：
-    - `export MAVEN_HOME=/usr/local/apache-maven-3.8.6`
-    - `export PATH=${PATH}:${MAVEN_HOME}/bin`
-  - 保存文件，并运行如下命令使环境变量生效：`source /etc/profile`
-  - 查看`Maven`是否安装成功：`mvn -v`
+- linux安装maven3.8
+    ```shell
+    #!/bin/bash
+    # -*- coding:utf-8 -*-
+    # description: 安装 maven3.8
+    # 下载安装包
+    read -p "请将 maven3.8 安装包放在 $HOME 目录下" sss
+    # wget https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz -O  $HOME/apache-maven-3.8.6-bin.tar.gz
+    tar -zxvf  $HOME/apache-maven-3.8.6-bin.tar.gz
+    # 设置快捷方式
+    mv $HOME/apache-maven-3.8.6 /usr/local/
+    # 设置配置文件
+    echo 'export MAVEN_HOME=/usr/local/apache-maven-3.8.6
+    export PATH=${PATH}:${MAVEN_HOME}/bin' >> $HOME/.bashrc
+    source $HOME/.bashrc
+    # 查询maven的版本
+    mvn --version
+    # 设置maven国内源
+    mkdir -p $HOME/.m2
+    echo '<?xml version="1.0" encoding="UTF-8"?>
+    <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+        <pluginGroups>
+        </pluginGroups>
+        <proxies>
+        </proxies>
+        <servers>
+        </servers>
+        <mirrors>
+            <mirror>
+                <id>alimaven</id>
+                <mirrorOf>central</mirrorOf>
+                <name>aliyun maven</name>
+                <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+            </mirror>
+        </mirrors>
+        <profiles>
+            <profile>
+                <id>JDK-1.8</id>
+                <activation>
+                    <activeByDefault>true</activeByDefault>
+                    <jdk>1.8</jdk>
+                </activation>
+                <properties>
+                    <maven.compiler.source>1.8</maven.compiler.source>
+                    <maven.compiler.target>1.8</maven.compiler.target>
+                    <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+                </properties>
+            </profile>
+        </profiles>
+    </settings>' > $HOME/.m2/settings.xml
+    ```
   
 ##### 2.3 pom文件
 - POM( Project Object Model，项目对象模型 ) 是 Maven 工程的基本工作单元，是一个XML文件，包含了项目的基本信息，用于描述项目如何构建，声明项目依赖等
@@ -100,12 +181,10 @@
     ```xml
     <!-- localRepository
       | The path to the local repository maven will use to store artifacts.
-      |
       | Default: ${user.home}/.m2/repository
       <localRepository>/path/to/local/repo</localRepository>
       -->
       <localRepository>D:\java\maven\repository</localRepository>
-
     ```
   - 修改maven默认的JDK版本：在`<profiles>`标签下添加一个`<profile>`标签，修改maven默认的JDK版本
     ```xml
@@ -121,7 +200,6 @@
             <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>       
         </properties>       
     </profile>
-
     ```
   - 添加国内镜像源添加`<mirrors>`标签下`<mirror>`，添加国内镜，这样下载`jar`包速度很快
     ```xml
@@ -131,8 +209,8 @@
           <name>aliyun maven</name>
           <url>http://maven.aliyun.com/nexus/content/groups/public</url>
     </mirror>
-
     ```
+
 - 依赖管理
   - parent与dependencyManager的区别
     1. 继承了parent，会继承parent项目中的所有jar包
@@ -163,9 +241,7 @@
           </exclusion>
       </exclusions>
     </dependency>
-    
     ```
-
 
 ##### 2.4 构建生命周期
   - `clean`：项目清理的处理
@@ -191,9 +267,7 @@
 - 修改网站的端口号(`./conf/server.xml`): 默认端口号-8080
   ```xml
   <Connector port="8089" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" useBodyEncodingForURI="true" URIEncoding="UTF-8" />
-
   ```
-
 ##### 3.3 Jenkins自动化集成
 - 安装: 类似于用宝塔安装Java war包
 - 配置 JDK, Maven, git
