@@ -1854,20 +1854,6 @@
       5. Flannel.1 设备查看数据包，根据路由表匹配，将数据发送给cni0设备
       6. cni0匹配路由表，发送数据到网桥
 
-- 测试kubernetes集群
-    ```shell
-    # 创建一个deployment，开放对外端口访问，这里会随机映射一个端口
-    kubectl create deployment nginx --image=nginx:1.22
-    kubectl expose deployment nginx --port=80 --target-port=8080 --type=NodePort
-    # 查看pod, svc 
-    kubectl get pod,svc,deploy -o wide
-    # 删除deployment
-    kubectl delete deploy 无状态服务的名字
-    ```
-
-- 以后所有yaml文件都只在Master节点执行
-    - 安装目录：`/etc/kubernetes/`
-    - 组件配置文件目录：`/etc/kubernetes/manifests/`
 
 ##### 2.3 kubectl 的常用知识
 - k8s的基本知识
@@ -1892,27 +1878,60 @@
 
 - kubectl 常用指令
     ```shell
-    # 创建应用和服务
+    ######## 基础命令
+    # 创建或者更新资源类型
+    kubectl create ns my-namespace
     # kubectl apply -f nginx.yaml,如果没有则创建，如果有则变更，比create好用
     kubectl apply -f xxx.yaml   
-    # 查看pod, svc, deployment, node
-    # 查看详细信息:-o wide,使用其他的命名空间:-n namespace名, 默认的命名空间: default
-    kubectl get 组件名 -o wide -A  
+    # 查看资源类型: `kubectl api-resources`
+    # 服务: svc(service)
+    # 控制pod运行: po(pods), (deploy)deployment, no(nodes), statefulset, ds(daemonset), cj(cronjobs), jobs
+    # 持久化存储: pvc(persistentvolumeclaims), pv(persistentvolume)
+    # 配置信息: ns(namespace), secrets, configmap(cm), sa(serviceaccounts)
+
+    # 常用参数
+    # 查看详细信息:-o wide
+    # 使用命名空间:-n namespace名, 默认的命名空间: default, 所有命名空间: -A
+    # 使用标签: -L
+    kubectl get 资源类型 -o wide -A 
+    # 以yaml格式查看资源 
+    kubectl get pod pod-1245332 -o yaml 
     # 删除pod, svc
     kubectl delete pod pod名字
     # 删除所有的节点, 命名空间为default
     kubectl delete pod pod名字 --all
     kubectl delete -f xxx.yaml  
-    # 修改deploy
+    # 修改资源
     kubectl edit deploy nginx
     # 查看pod,svc的详细信息
     kubectl describe pod pod名   
     # 查看日志
     kubectl logs pod名    
-    # 查看资源使用
-    kubectl top 组件名  
+    # 查看资源使用, 支持的资源类型: pod, node
+    kubectl top 资源类型  
     # 进入容器
-    kubectl exec -ti pod名 /bin/bash    
+    kubectl exec -ti pod名 /bin/bash  
+
+    # 部署命令
+    # 滚动更新支持的资源: deployment, daemonset, statefulset
+    # 查看资源的历史版本和版本的详细信息
+    kubectl rollout history deployment/deployname
+    kubectl rollout history deployment/deployname --revision=1
+    # 回退到上个版本和指定版本
+    kubectl rollout undo deployment.apps/nginx
+    kubectl rollout undo deployment.apps/nginx --to-revision=1
+
+    # 集群管理命令
+    # 有时候会遇到这样一个场景，一个node需要升级，但是在该node上又有许多运行的pod，或者该node已经瘫痪，
+    # 需要保证功能的完善，则需要使用这组命令，使用步骤如下：
+    # 使用cordon命令将一个node标记为不可调度
+    kubectl cordon nodename
+    # 使用drain命令，将运行在该node上运行的pod平滑的搬迁到其他节点上。
+    kubectl drain nodename --ignore-daemonsets --ignore-emptydir
+    # 备注：ignore-emptydir为用户挂载空目录的数据。
+    # 对该节点进行一些节点维护的操作，如升级内核、升级Docker等。
+    # 节点维护完后，使用uncordon命令解锁该node，使其重新变得可调度。
+    kubectl uncordon nodename
     ```
 
 - 纳管节点和删除节点
@@ -1952,32 +1971,115 @@
 ##### 2.4 k8s 的资源清单
 - 资源清单模板
     ```yaml
-    apiVersion: apps/v1      
-    kind: Deployment         
+    apiVersion: apps/v1
+    kind: Deployment
     metadata:
-      name: nginx            
+      name: nginx
+      labels:
+        app: nginx
     spec:
-      replicas: 3                    
-      selector:              
+      selector:
         matchLabels:
-          app: nginx
-      template:              
+          octopusexport: OctopusExport
+      replicas: 3
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 25%
+          maxSurge: 25%
+      template:
         metadata:
           labels:
             app: nginx
+            octopusexport: OctopusExport
         spec:
+          volumes:
+            - name: v-test
+              hostPath:
+                path: /test
+                type: DirectoryOrCreate
+            - name: vol-time           # 节点时间与容器时间同步
+              hostPath:
+                path: /etc/localtime
+                type: ''
           containers:
-          - image: nginx:1.22
-            name: container-0
-            resources:
-              limits:
-                cpu: 100m
-                memory: 200Mi
-              requests:
-                cpu: 100m
-                memory: 200Mi
-          imagePullSecrets:
-          - name: default-secret
+            - name: container-0
+              image: 'nginx:1.22-alpine'
+              imagePullPolicy: IfNotPresent
+              # command:
+              #   - 'echo'
+              # args:
+              #   - 'hello,world'
+              ports:
+                - name: port-0
+                  containerPort: 80
+                  protocol: TCP
+              env:
+                - name: NAME
+                  value: test123
+              volumeMounts:
+                - name: v-test
+                  mountPath: /test
+                  subPath: ''
+                - name: vol-time
+                  readOnly: true
+                  mountPath: /etc/localtime
+              resources:
+                requests:
+                  memory: 100Mi           # 指数类型: Ki | Mi | Gi | Ti | Pi | Ei, 1024 = 1Ki
+                  cpu: 100m               # 十进制类型:  m | "" | k | M | G | T | P | E, 1000 = 1k
+                limits:
+                  memory: 100Mi
+                  cpu: 100m
+              livenessProbe:               # 存活探针: 用于检测容器是否正常，类似于我们执行ps命令检查进程是否存在。一般必须配置
+                failureThreshold: 3        # 如果容器的存活检查失败，集群会对该容器执行重启操作；若容器的存活检查成功则不执行任何操作
+                initialDelaySeconds: 10  
+                periodSeconds: 10
+                timeoutSeconds: 10
+                httpGet:
+                  host: ''
+                  path: /
+                  port: 80
+                  scheme: HTTP
+              readinessProbe:              # 就绪探针: 用于检查用户业务是否就绪，如果未就绪，则不转发流量到当前实例
+                failureThreshold: 3        # 如果容器的就绪检查失败，集群会屏蔽请求访问该容器；若检查成功，则会开放对该容器的访问
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 10
+                httpGet:
+                  host: ''
+                  path: /
+                  port: 80
+                  scheme: HTTP
+              # startupProbe:                 # 启动探针: 用于探测应用程序容器什么时候启动了。 如果配置了这类探测器，
+              #   failureThreshold: 3         # 就可以控制容器在启动成功后再进行存活性和就绪检查， 确保这些存活、就绪探针不会影响应用程序的启动 
+              #   initialDelaySeconds: 10     # 启动探针失败, 容器会重启. 一般不需要配置, 配置了会导致容器启动慢
+              #   periodSeconds: 10
+              #   successThreshold: 1
+              #   timeoutSeconds: 10
+              #   httpGet:
+              #     host: ''
+              #     path: /
+              #     port: 80
+              #     scheme: HTTP
+              # lifecycle:
+              #   preStop:
+              #     exec:
+              #       command:
+              #         - rm
+              #         - '-rf'
+              #         - /test/123.txt
+              #   postStart:
+              #     exec:
+              #       command:
+              #         - touch
+              #         - /test/123.txt
+              securityContext:
+                privileged: true
+                readOnlyRootFilesystem: false
+                runAsGroup: 0
+                runAsUser: 0
     ---
     apiVersion: v1
     kind: Service   
@@ -1986,7 +2088,7 @@
     spec:
       selector:
         app: nginx
-      type: NodePort
+      type: NodePort  # ClusterIP, NodePort, and LoadBalancer
       ports:
       - name: service01
         targetPort: 80
@@ -1994,7 +2096,7 @@
         nodePort: 30130  # nodePort 默认范围为30000-32767
     ```
 
-##### 2.5 K8S官方Dashboard
+##### 2.5 部署Dashboard
 - 安装步骤
     ```shell
     # 获取recommended.yaml文件, 此文件中Service默认使用ClusterIP

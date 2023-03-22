@@ -3,7 +3,6 @@
 - [我的 Github](https://github.com/huohuoren4)
 - [我的 Gitee](https://gitee.com/shushuiren4)
 - [Python-3.7.13文档](https://docs.python.org/zh-cn/3.7/)
-- [Golang中文文档](https://go-zh.org/doc/)
 
 ---
 #### 2. 主要内容
@@ -17,8 +16,3 @@
 
 ---
 #### 3. 补充内容
-
-
-#### 备忘录
-1. 制作jekins镜像
-2. 制作jmeter镜像

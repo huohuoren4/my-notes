@@ -1,55 +1,109 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: golang-demo
+  name: nginx
+  labels:
+    app: nginx
 spec:
-  replicas: 3
   selector:
     matchLabels:
-      app: golang-demo
+      octopusexport: OctopusExport
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
   template:
     metadata:
       labels:
-        app: golang-demo
+        app: nginx
+        octopusexport: OctopusExport
     spec:
+      volumes:
+        - name: v-test
+          hostPath:
+            path: /test
+            type: DirectoryOrCreate
+        - name: vol-time           # 节点时间与容器时间同步
+          hostPath:
+            path: /etc/localtime
+            type: ''
       containers:
-      - image: swr.cn-north-4.myhuaweicloud.com/wx-2022/golang-demo-x86_64:v1.1.8
-        name: container-0
-        resources:
-          limits:
-            cpu: 1000m
-            memory: 1000Mi
-          requests:
-            cpu: 700m
-            memory: 700Mi
-      imagePullSecrets:
-      - name: default-secret
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: golang-demo-service
-spec:
-  selector:
-    app: golang-demo
-  ports:
-  - name: service01
-    targetPort: 80
-    port: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: test-ingress
-spec:
-  rules:
-    - host: test-ingress.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: golang-demo-service
-                port:
-                  number: 80
+        - name: container-0
+          image: 'nginx:1.22-alpine'
+          imagePullPolicy: IfNotPresent
+          # command:
+          #   - 'echo'
+          # args:
+          #   - 'hello,world'
+          ports:
+            - name: port-0
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: NAME
+              value: test123
+          volumeMounts:
+            - name: v-test
+              mountPath: /test
+              subPath: ''
+            - name: vol-time
+              readOnly: true
+              mountPath: /etc/localtime
+          resources:
+            requests:
+              memory: 100Mi
+              cpu: 100m
+            limits:
+              memory: 100Mi
+              cpu: 100m
+          livenessProbe:               # 存活探针: 用于检测容器是否正常，类似于我们执行ps命令检查进程是否存在。一般必须配置
+            failureThreshold: 3        # 如果容器的存活检查失败，集群会对该容器执行重启操作；若容器的存活检查成功则不执行任何操作
+            initialDelaySeconds: 10  
+            periodSeconds: 10
+            timeoutSeconds: 10
+            httpGet:
+              host: ''
+              path: /
+              port: 80
+              scheme: HTTP
+          readinessProbe:              # 就绪探针: 用于检查用户业务是否就绪，如果未就绪，则不转发流量到当前实例
+            failureThreshold: 3        # 如果容器的就绪检查失败，集群会屏蔽请求访问该容器；若检查成功，则会开放对该容器的访问
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 10
+            httpGet:
+              host: ''
+              path: /
+              port: 80
+              scheme: HTTP
+          # startupProbe:                 # 启动探针: 用于探测应用程序容器什么时候启动了。 如果配置了这类探测器，
+          #   failureThreshold: 3         # 就可以控制容器在启动成功后再进行存活性和就绪检查， 确保这些存活、就绪探针不会影响应用程序的启动 
+          #   initialDelaySeconds: 10     # 启动探针失败, 容器会重启. 一般不需要配置, 配置了会导致容器启动慢
+          #   periodSeconds: 10
+          #   successThreshold: 1
+          #   timeoutSeconds: 10
+          #   httpGet:
+          #     host: ''
+          #     path: /
+          #     port: 80
+          #     scheme: HTTP
+          # lifecycle:
+          #   preStop:
+          #     exec:
+          #       command:
+          #         - rm
+          #         - '-rf'
+          #         - /test/123.txt
+          #   postStart:
+          #     exec:
+          #       command:
+          #         - touch
+          #         - /test/123.txt
+          securityContext:
+            privileged: true
+            readOnlyRootFilesystem: false
+            runAsGroup: 0
+            runAsUser: 0

@@ -656,7 +656,11 @@
     # 如rsa私钥默认文件名 ~/.ssh/id_rsa ，公钥默认文件名 ~/.ssh/id_rsa.pub
     mkdir -p ~/.ssh &&  cd ~/.ssh  && ssh-keygen -t rsa
     # 把公钥加到authorized_keys（id_rsa根据取名略有不同，我这里用的是默认）
-    cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+    # cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+    # 也可以使用ssh-copy-id, ssh-copy-id 使用本地可用的密钥授权登录远程计算机。
+    # ssh-copy-id 可以把本地主机的公钥复制到远程主机的 authorized_keys 文件上。
+    # ssh-copy-id 也会给远程主机的~/.ssh 和 ~/.ssh/authorized_keys设置合适的权限。
+    ssh-copy-id root@192.168.56.20
     # 打开密钥登陆功能（默认打开可以不设置）
     # vim /etc/ssh/sshd_config
     # ---
