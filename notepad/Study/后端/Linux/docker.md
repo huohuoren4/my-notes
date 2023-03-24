@@ -1932,6 +1932,14 @@
     # 对该节点进行一些节点维护的操作，如升级内核、升级Docker等。
     # 节点维护完后，使用uncordon命令解锁该node，使其重新变得可调度。
     kubectl uncordon nodename
+    # 污点: 能够使节点排斥某些特定的Pod，从而避免Pod调度到该节点上
+    # 节点污点是与“效果”相关联的键值对。以下是可用的效果：
+    # NoSchedule：不能容忍此污点的 Pod 不会被调度到节点上；现有 Pod 不会从节点中逐出。
+    # PreferNoSchedule：Kubernetes 会尽量避免将不能容忍此污点的 Pod 安排到节点上。
+    # NoExecute：如果 Pod 已在节点上运行，则会将该 Pod 从节点中逐出；如果尚未在节点上运行，则不会将其安排到节点上。
+    kubectl taint node 192.168.10.240 key1=value1:NoSchedule
+    # 去除污点可以使用如下命令，在NoSchedule后加一个“-”
+    kubectl taint node 192.168.10.240 key1=value1:NoSchedule-
     ```
 
 - 纳管节点和删除节点
