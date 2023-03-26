@@ -16,3 +16,11 @@
 
 ---
 #### 3. 补充内容
+```shell
+# 获取token
+kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | awk '/admin-user/{print $1}') | awk '/token:/{print $2}'
+
+# 使用curl访问
+curl -H "Authorization: Bearer ${token}" -k https://127.0.0.1:6443/api/
+
+```

@@ -172,7 +172,10 @@
     - `date +%s`  ***获取绝对秒数（UTC）***
     - `date -s '2012-12-12 10:00:00'`  ***修改服务器时间：2012-12-12 10:00:00***
     - `timedatectl set-timezone Asia/Shanghai`  ***设置时区为: 中国上海***
-    - `ntpdate ntp.api.bz`  ***同步服务器时间***
+    - 服务器时间同步:
+      - `ntpdate ntp.api.bz`  ***手动同步服务器时间***
+      - 自动同步服务器时间
+        - 安装ntp和设置开机启动: `yum install -y ntp && systemctl enable ntpd --now`
 
 ##### 1.9 命令详解
 - ps命令详解
@@ -584,7 +587,11 @@
     # 刷新缓存
     yum clean all && yum makecache
     # 常用依赖
-    yum -y install wget  gcc make  net-tools git vim iotop tree
+    yum -y install wget  gcc make  net-tools git vim iotop tree ntp
+    # 设置时区
+    timedatectl set-timezone Asia/Shanghai
+    # 设置时间自动同步
+    yum install -y ntp && systemctl enable ntpd --now
     ```
 
 - 升级linux内核

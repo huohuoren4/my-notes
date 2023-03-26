@@ -1876,6 +1876,17 @@
     - 持久化存储: PV, PVC(持久化存储申请)
     - 配置信息: ConfigMap, Secret
 
+- pod的生命周期
+    ```shell
+    # 周期: init container -> main container(postStart -> startupProbe -> livenessProbe或者readlinessProbe -> preStop)
+    # Pod的状态: 
+    # 1.Pending：表示APIServer创建了Pod资源对象并已经存入了etcd中，但是它并未被调度完成（比如还没有调度到某台node上），或者仍然处于从仓库下载镜像的过程中
+    # 2.Running：Pod已经被调度到某节点之上，并且Pod中所有容器都已经被kubelet创建。至少有一个容器正在运行，或者正处于启动或者重启状态（也就是说Running状态下的Pod不一定能被正常访问）
+    # 3.Succeeded：有些pod不是长久运行的，比如job、cronjob，一段时间后Pod中的所有容器都被成功终止，并且不会再重启。需要反馈任务执行的结果
+    # 4.Failed：Pod中的所有容器都已终止了，并且至少有一个容器是因为失败终止。也就是说，容器以非0状态退出或者被系统终止，比如 command 写的有问题
+    # 5.Unknown：表示无法读取 Pod 状态，通常是 kube-controller-manager 无法与 Pod 通信
+    ```
+
 - kubectl 常用指令
     ```shell
     ######## 基础命令
@@ -1932,20 +1943,55 @@
     # 对该节点进行一些节点维护的操作，如升级内核、升级Docker等。
     # 节点维护完后，使用uncordon命令解锁该node，使其重新变得可调度。
     kubectl uncordon nodename
+
     # 污点: 能够使节点排斥某些特定的Pod，从而避免Pod调度到该节点上
     # 节点污点是与“效果”相关联的键值对。以下是可用的效果：
-    # NoSchedule：不能容忍此污点的 Pod 不会被调度到节点上；现有 Pod 不会从节点中逐出。
-    # PreferNoSchedule：Kubernetes 会尽量避免将不能容忍此污点的 Pod 安排到节点上。
-    # NoExecute：如果 Pod 已在节点上运行，则会将该 Pod 从节点中逐出；如果尚未在节点上运行，则不会将其安排到节点上。
+    # NoSchedule: 不能容忍此污点的 Pod 不会被调度到节点上；现有 Pod 不会从节点中逐出。
+    # PreferNoSchedule: Kubernetes 会尽量避免将不能容忍此污点的 Pod 安排到节点上。
+    # NoExecute: 如果 Pod 已在节点上运行，则会将该 Pod 从节点中逐出；如果尚未在节点上运行，则不会将其安排到节点上。
     kubectl taint node 192.168.10.240 key1=value1:NoSchedule
     # 去除污点可以使用如下命令，在NoSchedule后加一个“-”
     kubectl taint node 192.168.10.240 key1=value1:NoSchedule-
+    # 在资源清单中修改: `kubectl edit node 192.168.10.240`
+    # ...
+    # spec:
+    #   providerID: 06a5ea3a-0482-11ec-8e1a-0255ac101dc2
+    #   taints:
+    #   - effect: NoSchedule
+    #     key: key1
+    #     value: value1   # value值可以省略
+    # ...
+    # k8s系统自带的污点
+    # node.kubernetes.io/not-ready:node不是ready状态。对应于node的condition ready=false.
+    # node.kubernetes.io/unreachable:node controller与node失联了。对应于node的condition ready=unknown
+    # node.kubernetes.io/out-of-disk:node磁盘空间不足了。
+    # node.kubernetes.io/network-unavailable:node的网断了
+    # node.kubernets.io/unschedulable:node不是可调度状态
+    # node.cloudprovider.kubernetes.io/uninitalized:kubelet是由外部云提供商提供的时候，刚开始的时候会打上这个污点来标记还未被使用。
+    # 当cloud-controller-manager控制器初始化完这个node，kubelet会自动移除这个污点。
+    # 比如: 
+    # ---
+    # terminationGracePeriodSeconds: 30
+    # tolerations:
+    # - effect: NoExecute
+    #   key: node.kubernetes.io/not-ready
+    #   operator: Exists
+    #   tolerationSeconds: 300
+    # - effect: NoExecute
+    #   key: node.kubernetes.io/unreachable
+    #   operator: Exists
+    #   tolerationSeconds: 300
+    # ---
+    # Kubernetes 调度器处理多个 Taint 和 Toleration 能够匹配的部分，剩下的没有忽略掉的 Taint 就是对 Pod 的效果了。下面是几种特殊情况
+    # 1.如果剩余的 Taint 中存在 effect=NoSchedule，则调度器不会把该 pod 调度到这一节点上
+    # 2.如果剩余的 Taint 中没有 NoSchedule 的效果，但是有 PreferNoSchedule 效果，则调度器会尝试不会 pod指派给这个节点
+    # 3.如果剩余 Taint 的效果有 NoExecute 的，并且这个 pod已经在该节点运行，则会被驱逐；如果没有在该节点运行，也不会再被调度到该节点上
     ```
 
 - 纳管节点和删除节点
     ```shell
     ###################################################
-    # 删除node节点
+    # 先迁移pod, 再删除node节点
     # master节点
     # 其中< node name >是在k8s集群中使用< kubectl get nodes >查询到的节点名称
     kubectl drain <node name> --delete-local-data --force --ignore-daemonsets
@@ -2041,8 +2087,10 @@
                   cpu: 100m
               livenessProbe:               # 存活探针: 用于检测容器是否正常，类似于我们执行ps命令检查进程是否存在。一般必须配置
                 failureThreshold: 3        # 如果容器的存活检查失败，集群会对该容器执行重启操作；若容器的存活检查成功则不执行任何操作
-                initialDelaySeconds: 10  
-                periodSeconds: 10
+                initialDelaySeconds: 10    # 探针目前均支持三种探测方式: httpGet, exec, tcpSocket
+                periodSeconds: 10          # httpGet: 调用Web应用的URL，如果返回的状态码在200到399之间，则认为程序正常，否则不正常
+                successThreshold: 1        # exec: 在容器内执行一次命令，如果命令执行的退出码为0，则认为程序正常，否则不正常
+                successThreshold: 1        # tcpSocket: 将会尝试访问一个用户容器的端口，如果能够建立这条连接，则认为程序正常，否则不正常
                 timeoutSeconds: 10
                 httpGet:
                   host: ''
@@ -2088,6 +2136,12 @@
                 readOnlyRootFilesystem: false
                 runAsGroup: 0
                 runAsUser: 0
+          # tolerations:                    # 容忍度: 容忍度应用于Pod上，允许（但并不要求）Pod 调度到带有与之匹配的污点的节点上       
+          # - key: "key1"                   # operator值是Exists，则value属性可以忽略; 值是Equal，则表示等于;不指定，则默认为Equal
+          #   operator: "Equal"             # key如果为空, operator必须是Exists, 两者组合意味着匹配所有污点的key和value
+          #   value: "value1"               # effect如果为空, 意味着匹配所有污点的effect
+          #   effect: "NoSchedule"  
+          #   tolerationSeconds: 3600
     ---
     apiVersion: v1
     kind: Service   
@@ -2155,13 +2209,22 @@
     EOF
 
     # 获取token
-    kubectl get secret -n kubernetes-dashboard
-    kubectl describe secret admin-user-token-tqx67 -n kubernetes-dashboard
-    # 结果如下:
-    # token: eyJhbGciOiJSUzI1NiIsImtpZCI6IndfM1FJUndQSHY3Y3V4UnliRHpoM0pXdWcwcGt5cHRGTzNSR2RiTWZDQ2MifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLXRxeDY3Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiJiN2I0Y2E0ZS01NjE1LTQxYjEtODdmNS1iMDcwODY5YjQyZDciLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZXJuZXRlcy1kYXNoYm9hcmQ6YWRtaW4tdXNlciJ9.Xf1pvHpOjJ7zmNX7rzyybnMpD0nJKoO31caJzXTX31WFBc5H3lS-Q1hXwjMsfUVv1VbnRybNjf_X4cd9z6l1htWy8ooD4S3q7AZzyLICDY-Zx8F0Iw0rJjpXeh1_LicHxiUiMmnoPYekN5qKkDvK3T1rxPEnZRAJOaO7FkzfxyshE0nXhgAtqmw6RKd1FWeybIvRxqpx54CwTnNPH7cIlC0zM3rw3USGa2G41kv6sisON4q7fQ1nfsiCuENr1yOKx_3d4gYtQIIes0wci2lU_K72Uao5s_TSm2B9cTeFoFOMf3d3Tefiy4Jx6FP37HhQ-bad7fYqNOQnEAszhDDIsg
+    kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret \
+     | awk '/admin-user/{print $1}') | awk '/token:/{print $2}'
 
     # 访问Dashboard
     # 在浏览器中输入: http://nodeip:30033, 再填写Token, 点击确定进入dashboard. 注意: 30033为Service的NodePort
+
+    # 通过k8s API访问
+    # 获取token
+    token=$(kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard \
+    get secret | awk '/admin-user/{print $1}') | awk '/token:/{print $2}')
+    # 不使用ssl证书
+    curl -H "Authorization: Bearer ${token}" -k https://192.168.56.10:6443/api/
+    # 使用ssl证书
+    curl -H "Authorization: Bearer ${token}" https://192.168.56.10:6443/api/ --cacert \
+    /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt \
+     --key /etc/kubernetes/pki/apiserver-kubelet-client.key
     ```
 
 ##### 2.6 部署Ingress
