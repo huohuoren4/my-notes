@@ -2498,7 +2498,7 @@
       type: ClusterIP
     ```
 
-- 守护进程 (每个节点上只有一个pod示例)
+- 守护进程
     ```yaml
     apiVersion: apps/v1
     kind: DaemonSet
@@ -2732,7 +2732,7 @@
                       cpu: 100m
                       memory: 100Mi
                     limits:
-                      cpu: 100000m
+                      cpu: 100m
                       memory: 100Mi
                   volumeMounts:
                     - name: vol-168045363713049147
