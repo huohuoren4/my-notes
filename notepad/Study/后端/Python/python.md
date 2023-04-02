@@ -1536,9 +1536,274 @@
             raise ValueError("值错误!!!")
     ```
 
+#### 2. Web框架: Flask
+##### 2.1 Flask的路由
+- Flask的路由
+    ```python
+    # flask的请求参数与请求体
+    # request.args
+    # request.args就是获取请求链接中 ? 后面的所有参数；
+    # 把所有参数转换成一个列表，列表里面的元素是一个元组，结构为：('id','1')；
+    # 再转换成一个字典，还有编码等操作: `id = request.args.get('id')`
+    # request.form
+    # 原理跟request.args差不多，只是request.form的数据来源是form表单，其他操作基本一致
+    # request.json
+    # 要想获取request.json中的数据, 设置了Content-Type:application/json的Body数据
+    # 只能通过request.json获取. request.json是把request.data的数据转换成JSON格式的数据
+    # request.get_data()
+    # request.get_data()的数据来源是请求参数属性Body
+    # request.files
+    # request.files接收的是form表单中<input type="file" name="file"/>传过过来的数据
+    # url_for(函数名), 返回资源路径, 比如: url_for("hello") -> "/hello"
+
+    # 获取请求其他参数
+    print("请求方式: ", request.method)
+    print("请求头: ", request.headers)
+    print("请求url: ", request.url)
+    ```
+
+- 实现restful-api
+    ```python
+    import os
+    from flask import Flask, jsonify, request, send_from_directory
+    from werkzeug.utils import secure_filename
+    app = Flask(__name__)
+
+    # 使通过jsonify返回的中文显示正常，否则显示为ASCII码
+    app.config["JSON_AS_ASCII"] = False
+    app.config['UPLOAD_FOLDER'] = './upload'
+
+    # 获取个人用户信息
+    @app.route('/hello/<int:id>', methods=['GET'])
+    def get_user(id: int):
+        print("路径参数: id=", id)
+        return jsonify({
+            "code": 200,
+            "msg": "查询个人用户信息成功!!!"
+        })
+
+    # 获取所有用户信息
+    @app.route('/hello', methods=['GET'])
+    def get_all_users():
+        print("请求参数:", request.args)
+        return jsonify({
+            "code": 200,
+            "msg": "查询所有用户信息成功!!!"
+        })
+
+    # 注册用户
+    @app.route('/hello', methods=['POST'])
+    def register_user():
+        print("请求体: ", request.json)
+        return jsonify({
+            "code": 200,
+            "msg": "注册用户成功!!!"
+        })
+
+    # 上传用户头像
+    @app.route('/hello/<int:id>/upload', methods=['POST'])
+    def upload_user_icon(id: int):
+        print("请求路径: id=", id)
+        for _, f in request.files.items():
+            # 使用安全的文件名
+            file_name = secure_filename(f.filename)
+            if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                os.makedirs(app.config['UPLOAD_FOLDER'])
+            f.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
+        print("上传文件的信息: ", request.files)
+        return jsonify({
+            "code": 200,
+            "msg": "上传用户头像成功!!!"
+        })
+
+    # 下载文件
+    # 带文件夹的路径: /hello/download/123/Snipaste_2023-01-14_14-05-26.png
+    @app.route('/hello/download/<path:name>', methods=['GET'])
+    def download_files(name: str):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
+
+    # 修改用户信息
+    @app.route('/hello/<int:id>', methods=['PUT'])
+    def update_user(id: int):
+        print("请求路径: id=", id)
+        print("请求体: ", request.json)
+        return jsonify({
+            "code": 200,
+            "msg": "修改用户信息成功!!!"
+        })
+
+    # 删除用户信息用户信息
+    @app.route('/hello/<int:id>', methods=['DELETE'])
+    def delete_user(id: int):
+        print("请求路径: id=", id)
+        return jsonify({
+            "code": 200,
+            "msg": "删除用户信息成功!!!"
+        })
+
+    if __name__ == '__main__':
+        app.run(host="0.0.0.0", port=8080)
+    ```
+
+##### 2.2 数据库
+- Flask-SQLAlchemy的配置
+    ```python
+    # 数据库引擎
+    # MySQL:	mysql://username:password@hostname/database
+    # Postgres:	postgresql://username:password@hostname/database
+    # SQLite:	sqlite:///绝对路径, 比如: sqlite:////db/test.db
+    # 安装Flask-SQLAlchemy插件: pip install flask-sqlalchemy 
+    # 安装mysql驱动插件: pip install pymysql
+
+    # mysql数据库连接示例
+    from flask import Flask
+    from flask_sqlalchemy import SQLAlchemy
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@192.168.56.210/test'
+    db = SQLAlchemy(app)
+
+    # 检测数据是否连接成功
+    with app.app_context():
+        with db.engine.connect() as conn:
+            # 执行原生SQL语句: conn.execute(text("{SQL语句}"))
+            rs = conn.execute(text("show databases;"))
+            print(rs.fetchall())
+    ```
+
+- 数据库的增删改查
+    ```python
+    from flask import Flask
+    from flask_sqlalchemy import SQLAlchemy
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@192.168.56.210/test'
+    db = SQLAlchemy(app)
+    
+    #### 创建表
+    #### 常用的字段类型
+    # 类型名    python接收类型      mysql生成类型   说明
+    # Integer   int                 int             整型
+    # Float     float               float           浮点型. 可以指定总长度和小数点后位数, 比如: db.float(precision="10,2")
+    # Numeric   float               decimal         浮点型. 可以指定总长度和小数点后位数, 比如: db.float(precision="10,2")
+    # Boolean   bool                tinyint         整型, 只占1个字节
+    # Text      str                 text            文本类型, 最大64KB
+    # LongText  str                 longtext        文本类型, 最大4G
+    # String    str                 varchar         变长字符串, 必须限定长度
+    # Date      datetime.date       date            日期
+    # DateTime  datetime.datetime   datetime        日期和时间
+    # Time      datetime.time       time            时间
+
+    ##### db.Column()
+    # 选项名           说明
+    # name             字段在数据库变种的名称. 如果没有设置, 则使用此属性名作为字段名称
+    # primary_key      如果为True, 表示该字段为表的主键, 默认自增
+    # autoincrement    如果为True, 数据自增
+    # unique           如果为True, 代表这列设置唯一约束
+    # nullable         如果为False, 代表这列设置非空约束
+    # server_default   为这列设置默认值
+    # index            如果为True, 为这列创建索引, 提高查询效率
+    # comment          在创建表时的注释
+
+    class User(db.Model):
+        """创建用户表"""
+        __tablename__ = 'blog_user'
+        id = db.Column(db.Integer(), primary_key=True)
+        username = db.Column(db.String(50), nullable=False)
+        age = db.Column(db.Integer(), nullable=False, server_default="20")
+        price = db.Column(db.Numeric("10,2"), nullable=False)
+        description = db.Column(db.String(255), nullable=False)
+        group_id = db.Column(db.String(20), nullable=False, comment="用户组ID")
+
+        def __repr__(self):
+            return json.dumps({
+                "id": self.id,
+                "username": self.username,
+                "age": self.age,
+                "price": str(self.price),
+                "description": self.description,
+                "group_id": self.group_id,
+            }, ensure_ascii=False)
+
+    class UserGroup(db.Model):
+        """创建用户组"""
+        __tablename__ = 'blog_group'
+        id = db.Column(db.Integer(), primary_key=True)
+        group_name = db.Column(db.String(20), server_default="小学组", unique=True, nullable=False, comment="用户组名")
+        
+        def __repr__(self):
+            return json.dumps({
+                "id": self.id,
+                "group_name": self.group_name
+            }, ensure_ascii=False)
+
+
+    if __name__ == '__main__':
+        with app.app_context():
+            # 如果存在表就删除, 再重新创建表
+            db.drop_all()
+            db.create_all()
+
+            # 插入数据
+            users = [
+                User(username="小唐", age=0, price=12.30, description="广东省深圳市松白路", group_id=1),
+                User(username="小明", age=13, price=30.00, description="美国洛杉矶", group_id=1),
+                User(username="小章", age=70, price=89.00, description="英国伦敦", group_id=3),
+                User(username="王小名", age=40, price=45.00, description="法国巴黎", group_id=2),
+                User(username="艾伦", age=1, price=14.00, description="古巴比伦", group_id=2),
+                User(username="李冰", age=36, price=45.63, description="中国上海", group_id=1)
+            ]
+            db.session.add_all(users)
+            groups = [
+                UserGroup(id=1, group_name="小学组"),
+                UserGroup(id=2, group_name="中学组"),
+                UserGroup(id=3, group_name="大学组")
+            ]
+            db.session.add_all(groups)
+            db.session.commit()
+
+            # 查询数据
+            # all(): 获取所有的查询结果
+            # first(): 获取第一个查询结果
+            # filter(UserGroup.id < 3, UserGroup.group_name=="小学组"): 比较查询
+            # filter(UserGroup.group_name.like("%组%")): 模糊查询
+            # in_(), notin_(): 属于, 不属于
+            # filter(UserGroup.id.in_([1, 2, 3, 4])): 范围查询
+            # filter(UserGroup.group_name == None): 判断为空
+            # filter(UserGroup.group_name.like("%组%")): 模糊查询
+            # 逻辑运算: or_, and_, not_
+            # filter(or_(UserGroup.id < 3, UserGroup.group_name=="小学组")): 模糊查询
+            # 分组
+            # group_by()和having(UserGroup.group_name): 分组
+            # 排序: 默认升序排列
+            # order_by(UserGroup.group_name)
+            # order_by(UserGroup.group_name.desc()):  # 按照降序排列
+            # 分页查询:
+            # limit(12), offset(0): 类似与sql中的 limit 0, 12
+            # 聚合函数: func.count(), func.sum(), func.min()
+            # 取别名: label("count")
+            # rs = db.session.query(UserGroup, func.sum(UserGroup.id).label("count")).group_by(UserGroup.group_name).all()
+            # 去重: distinct(UserGroup.id)
+            # rs = db.session.query(UserGroup).filter(UserGroup.id.in_([1, 2, 3, 4])).all()
+            # 关联查询: join()-内连接(inner join), outerjoin()-左连接(left join)
+            rs = db.session.query(UserGroup, User).join(UserGroup, User.group_id == UserGroup.id).all()
+            # 子查询: subquery()
+            # 查询各个分组中, 年纪最大的人名和对应的年龄
+            subset = db.session.query(User.group_id, func.max(User.age).label("max")).group_by(User.group_id).subquery()
+            res = db.session.query(User.id, User.age, UserGroup.group_name).filter(subset.c.max == User.age ).join(UserGroup, UserGroup.id == User.group_id).join(subset, subset.c.group_id == User.group_id)
+            print(res)
+
+            # 更新数据
+            res = db.session.query(User).filter(User.age == 70).update({"age": 60})
+            db.session.commit()
+
+            # 删除数据
+            res = db.session.query(User).filter(User.age == 60).delete()
+            db.session.commit()
+
+    ```
+
 ---
-#### 2. Web 框架: Django
-##### 2.1 django指令详情
+#### 3. Web 框架: Django
+##### 3.1 django指令详情
 - django 常用指令
     ```python
     # 创建 django 项目
@@ -1558,7 +1823,7 @@
     python manage.py migrate app 
 
     ```
-##### 2.2 跨域访问
+##### 3.2 跨域访问
 - 跨域访问测试脚本
     ```javascript
     // 打开浏览器，找一个空白文档，然后按下F12进入调试窗口，进入 console tab页输入以下代码，然后回车即可 
@@ -1575,7 +1840,7 @@
 
     ```
 
-##### 2.3 django 项目目录
+##### 3.3 django 项目目录
 - 项目目录
     ```python
     mysite/
@@ -1610,7 +1875,7 @@
     ]
 
     ```
-##### 2.4 路由
+##### 3.4 路由
 - django 路由的介绍
     ```python
     # 项目app的路由: mysite/urls.py
@@ -1635,7 +1900,7 @@
     ]  
 
     ```
-##### 2.5 视图
+##### 3.5 视图
 - django 视图介绍
     ```python
     from django.shortcuts import render, redirect
@@ -1668,7 +1933,7 @@
         return JsonResponse(data, json_dumps_params={'ensure_ascii':False})
     
     ```
-##### 2.6 数据库操作
+##### 3.6 数据库操作
 - 数据类型 
     ```python
     # AutoField:自动增长的IntegerField，通常不用指定，不指定时Django会自动创建属性名为id的自动增长属性    
@@ -1790,8 +2055,8 @@
 
     ```
 
-#### 3. 单元测试框架: Pytest
-##### 3.1 pytest 的基本知识
+#### 4. 单元测试框架: Pytest
+##### 4.1 pytest 的基本知识
 - pytest 默认规则:
     - `py`文件必须以`test_`开头
     - 类名必须以`Test`开头
@@ -1840,7 +2105,7 @@
         smoke: execute smoke testcases
     ```
 
-##### 3.2 前后置，夹具
+##### 4.2 前后置，夹具
 - `setup()/teardown()`:每个用例之前或者之后执行一次
 - `setup_class()/teardown_class()`:每个类之前或者之后执行一次
 - fixture 的定义: `@pytest.fixture(scope='作用域',params='数据驱动',autouse='自动执行')`
@@ -1906,7 +2171,7 @@
       ```
     - 一般情况下`@pytest.fixture()`会放在`conftest.py`文件中, conftest.py 与 pytest.ini 在同一个目录就好
 
-##### 3.3 插件
+##### 4.3 插件
 - allure
   - allure 装饰器: BDD风格的标签
     - `@allure.epic`：敏捷里面的概念，定义史诗，相当于module级的标签
@@ -1930,7 +2195,7 @@
     pyperclip.paste()
     ```
 
-##### 3.4 常用语句
+##### 4.4 常用语句
 - `with assume + assert` 与 assert 的区别
     ```python
     # with assume 示例
@@ -1952,8 +2217,8 @@
         assert 1 == 2  # 断言失败不会执行
     ``` 
 ---
-#### 4. UI 自动化测试
-##### 4.1 Selenium 的常用方法
+#### 5. UI 自动化测试
+##### 5.1 Selenium 的常用方法
 - Selenium 基本知识
     ```python
     # Chrome headless 模式
@@ -2073,9 +2338,9 @@
     driver.delete_all_cookies()
     ```
 
-##### 4.2 Selenium 进阶知识
+##### 5.2 Selenium 进阶知识
 
-##### 4.3 autotest 框架
+##### 5.3 autotest 框架
 - autotest 框架文件树
     ```shell
     Autotest 框架 
@@ -2100,8 +2365,8 @@
     └─utils
     ```
 ---
-#### 5. 接口自动化测试
-##### 5.1 Postman 实现接口自动化
+#### 6. 接口自动化测试
+##### 6.1 Postman 实现接口自动化
 - postman 脚本
     ```javascript
     // 设置获取环境变量
@@ -2119,7 +2384,7 @@
     tests["响应是否成功"]= code===200
     
     ```
-##### 5.2 request 框架
+##### 6.2 request 框架
 - 请求方法
     ```python
     # 请求头中的 Content-Type 类型的区别
@@ -2227,8 +2492,8 @@
         delete_user()
     ```
 
-#### 6. 设计模式
-##### 6.1 基本知识
+#### 7. 设计模式
+##### 7.1 基本知识
 - 设计模式六大原则
     ```txt
     1、单一原则（Single Responsibility Principle）：一个类或者一个方法只负责一项职责，尽量做到类的只有一个行为原因引起变化；
@@ -2267,7 +2532,7 @@
             pass
     ```
 
-##### 6.2 创建型模式 
+##### 7.2 创建型模式 
 - 单例模式
     ```python
     # 使用模块导入
@@ -2399,7 +2664,7 @@
         p = director.build_player(builder)
     ```
 
-##### 6.3 结构型模式 
+##### 7.3 结构型模式 
 - 适配器模式
     ```python
     class Payment(ABC):
@@ -2479,7 +2744,7 @@
         print(proxy_sub.read())
     ```
     
-##### 6.4 行为型模式
+##### 7.4 行为型模式
 - 观察者模式
     ```python
     class Subscriber:
@@ -2525,8 +2790,8 @@
         pub.activity("商城新活动结束")
     ```
 
-#### 7. 数据结构
-##### 7.1 栈
+#### 8. 数据结构与算法
+##### 8.1 栈
 - 栈的实现
     ```python
     # 栈(Stack)
@@ -2558,7 +2823,7 @@
             return self.items[-1]
 
     ```
-##### 7.2 队列
+##### 8.2 队列
 - 队列
   - 单向队列: Queue类
   - 双向队列: deque类
@@ -2583,9 +2848,24 @@
     # 删除单个元素
     queue.remove("last01")
     ```
+##### 8.3 算法
+- 算法示例
+    ```python
+    # 斐波那契数列
+    # 不带缓存
+    def fab(n):
+        return 1 if n <= 2 else fab(n - 1) + fab(n - 2)
 
-#### 8. 并发编程
-##### 8.1 GIL锁
+    # 带缓存
+    def fab01(n):
+        a, b = 1, 1
+        for i in range(3, n + 1):
+            a, b = b, a + b
+        return b
+    ```
+
+#### 9. 并发编程
+##### 9.1 GIL锁
     ```python
     # GIL:又叫全局解释器锁，每个线程在执行的过程中都需要先获取GIL，保证同一时刻只有一个线程在运行，目的是解决多线程同时竞争python解释器而出现的线程安全问题. 即使在多核CPU中，多线程同一时刻也只有一个线程在运行，这样不仅不能利用多核CPU的优势，反而由于每个线程在多个CPU上是交替执行的，导致在不同CPU上切换时造成资源的浪费，反而会更慢。即原因是一个进程只存在一把gil锁，当在执行多个线程时，内部会争抢gil锁，这会造成当某一个线程没有抢到锁的时候会让cpu等待，进而不能合理利用多核cpu资源.
 
@@ -2599,7 +2879,7 @@
     # 2.Python 3.x使用计时器（执行时间达到阈值后，当前线程释放GIL）或Python 2.x，tickets计数达到100。
     ```
 
-##### 8.2 多进程
+##### 9.2 多进程
 - multiprocessing模块
     ```python
     # 多进程: Process类
@@ -2683,7 +2963,7 @@
     # 进程池: ProcessPoolExecutor(与ThreadPoolExecutor类似)
     ```
 
-##### 8.3 多线程
+##### 9.3 多线程
 - threading模块
     ```python
     # 多线程
@@ -2857,7 +3137,7 @@
     # add_done_callback(fn: Callable): 异步执行回调函数, 回调函数的入参必须是Future对象.
     ```
 
-##### 8.4 协程
+##### 9.4 协程
 - yield实现的协程
     ```python
     import time
@@ -2908,267 +3188,3 @@
         asyncio.run(main())
     ```
 
-#### 8. Web框架: Flask
-##### 8.1 Flask的路由
-- Flask的路由
-    ```python
-    # flask的请求参数与请求体
-    # request.args
-    # request.args就是获取请求链接中 ? 后面的所有参数；
-    # 把所有参数转换成一个列表，列表里面的元素是一个元组，结构为：('id','1')；
-    # 再转换成一个字典，还有编码等操作: `id = request.args.get('id')`
-    # request.form
-    # 原理跟request.args差不多，只是request.form的数据来源是form表单，其他操作基本一致
-    # request.json
-    # 要想获取request.json中的数据, 设置了Content-Type:application/json的Body数据
-    # 只能通过request.json获取. request.json是把request.data的数据转换成JSON格式的数据
-    # request.get_data()
-    # request.get_data()的数据来源是请求参数属性Body
-    # request.files
-    # request.files接收的是form表单中<input type="file" name="file"/>传过过来的数据
-    # url_for(函数名), 返回资源路径, 比如: url_for("hello") -> "/hello"
-
-    # 获取请求其他参数
-    print("请求方式: ", request.method)
-    print("请求头: ", request.headers)
-    print("请求url: ", request.url)
-    ```
-
-- 实现restful-api
-    ```python
-    import os
-    from flask import Flask, jsonify, request, send_from_directory
-    from werkzeug.utils import secure_filename
-    app = Flask(__name__)
-
-    # 使通过jsonify返回的中文显示正常，否则显示为ASCII码
-    app.config["JSON_AS_ASCII"] = False
-    app.config['UPLOAD_FOLDER'] = './upload'
-
-    # 获取个人用户信息
-    @app.route('/hello/<int:id>', methods=['GET'])
-    def get_user(id: int):
-        print("路径参数: id=", id)
-        return jsonify({
-            "code": 200,
-            "msg": "查询个人用户信息成功!!!"
-        })
-
-    # 获取所有用户信息
-    @app.route('/hello', methods=['GET'])
-    def get_all_users():
-        print("请求参数:", request.args)
-        return jsonify({
-            "code": 200,
-            "msg": "查询所有用户信息成功!!!"
-        })
-
-    # 注册用户
-    @app.route('/hello', methods=['POST'])
-    def register_user():
-        print("请求体: ", request.json)
-        return jsonify({
-            "code": 200,
-            "msg": "注册用户成功!!!"
-        })
-
-    # 上传用户头像
-    @app.route('/hello/<int:id>/upload', methods=['POST'])
-    def upload_user_icon(id: int):
-        print("请求路径: id=", id)
-        for _, f in request.files.items():
-            # 使用安全的文件名
-            file_name = secure_filename(f.filename)
-            if not os.path.exists(app.config['UPLOAD_FOLDER']):
-                os.makedirs(app.config['UPLOAD_FOLDER'])
-            f.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
-        print("上传文件的信息: ", request.files)
-        return jsonify({
-            "code": 200,
-            "msg": "上传用户头像成功!!!"
-        })
-
-    # 下载文件
-    # 带文件夹的路径: /hello/download/123/Snipaste_2023-01-14_14-05-26.png
-    @app.route('/hello/download/<path:name>', methods=['GET'])
-    def download_files(name: str):
-        return send_from_directory(app.config['UPLOAD_FOLDER'], name, as_attachment=True)
-
-    # 修改用户信息
-    @app.route('/hello/<int:id>', methods=['PUT'])
-    def update_user(id: int):
-        print("请求路径: id=", id)
-        print("请求体: ", request.json)
-        return jsonify({
-            "code": 200,
-            "msg": "修改用户信息成功!!!"
-        })
-
-    # 删除用户信息用户信息
-    @app.route('/hello/<int:id>', methods=['DELETE'])
-    def delete_user(id: int):
-        print("请求路径: id=", id)
-        return jsonify({
-            "code": 200,
-            "msg": "删除用户信息成功!!!"
-        })
-
-    if __name__ == '__main__':
-        app.run(host="0.0.0.0", port=8080)
-    ```
-
-##### 8.2 数据库
-- Flask-SQLAlchemy的配置
-    ```python
-    # 数据库引擎
-    # MySQL:	mysql://username:password@hostname/database
-    # Postgres:	postgresql://username:password@hostname/database
-    # SQLite:	sqlite:///绝对路径, 比如: sqlite:////db/test.db
-    # 安装Flask-SQLAlchemy插件: pip install flask-sqlalchemy 
-    # 安装mysql驱动插件: pip install pymysql
-
-    # mysql数据库连接示例
-    from flask import Flask
-    from flask_sqlalchemy import SQLAlchemy
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@192.168.56.210/test'
-    db = SQLAlchemy(app)
-
-    # 检测数据是否连接成功
-    with app.app_context():
-        with db.engine.connect() as conn:
-            # 执行原生SQL语句: conn.execute(text("{SQL语句}"))
-            rs = conn.execute(text("show databases;"))
-            print(rs.fetchall())
-    ```
-
-- 数据库的增删改查
-    ```python
-    from flask import Flask
-    from flask_sqlalchemy import SQLAlchemy
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@192.168.56.210/test'
-    db = SQLAlchemy(app)
-    
-    #### 创建表
-    #### 常用的字段类型
-    # 类型名    python接收类型      mysql生成类型   说明
-    # Integer   int                 int             整型
-    # Float     float               float           浮点型. 可以指定总长度和小数点后位数, 比如: db.float(precision="10,2")
-    # Numeric   float               decimal         浮点型. 可以指定总长度和小数点后位数, 比如: db.float(precision="10,2")
-    # Boolean   bool                tinyint         整型, 只占1个字节
-    # Text      str                 text            文本类型, 最大64KB
-    # LongText  str                 longtext        文本类型, 最大4G
-    # String    str                 varchar         变长字符串, 必须限定长度
-    # Date      datetime.date       date            日期
-    # DateTime  datetime.datetime   datetime        日期和时间
-    # Time      datetime.time       time            时间
-
-    ##### db.Column()
-    # 选项名           说明
-    # name             字段在数据库变种的名称. 如果没有设置, 则使用此属性名作为字段名称
-    # primary_key      如果为True, 表示该字段为表的主键, 默认自增
-    # autoincrement    如果为True, 数据自增
-    # unique           如果为True, 代表这列设置唯一约束
-    # nullable         如果为False, 代表这列设置非空约束
-    # server_default   为这列设置默认值
-    # index            如果为True, 为这列创建索引, 提高查询效率
-    # comment          在创建表时的注释
-
-    class User(db.Model):
-        """创建用户表"""
-        __tablename__ = 'blog_user'
-        id = db.Column(db.Integer(), primary_key=True)
-        username = db.Column(db.String(50), nullable=False)
-        age = db.Column(db.Integer(), nullable=False, server_default="20")
-        price = db.Column(db.Numeric("10,2"), nullable=False)
-        description = db.Column(db.String(255), nullable=False)
-        group_id = db.Column(db.String(20), nullable=False, comment="用户组ID")
-
-        def __repr__(self):
-            return json.dumps({
-                "id": self.id,
-                "username": self.username,
-                "age": self.age,
-                "price": str(self.price),
-                "description": self.description,
-                "group_id": self.group_id,
-            }, ensure_ascii=False)
-
-    class UserGroup(db.Model):
-        """创建用户组"""
-        __tablename__ = 'blog_group'
-        id = db.Column(db.Integer(), primary_key=True)
-        group_name = db.Column(db.String(20), server_default="小学组", unique=True, nullable=False, comment="用户组名")
-        
-        def __repr__(self):
-            return json.dumps({
-                "id": self.id,
-                "group_name": self.group_name
-            }, ensure_ascii=False)
-
-
-    if __name__ == '__main__':
-        with app.app_context():
-            # 如果存在表就删除, 再重新创建表
-            db.drop_all()
-            db.create_all()
-
-            # 插入数据
-            users = [
-                User(username="小唐", age=0, price=12.30, description="广东省深圳市松白路", group_id=1),
-                User(username="小明", age=13, price=30.00, description="美国洛杉矶", group_id=1),
-                User(username="小章", age=70, price=89.00, description="英国伦敦", group_id=3),
-                User(username="王小名", age=40, price=45.00, description="法国巴黎", group_id=2),
-                User(username="艾伦", age=1, price=14.00, description="古巴比伦", group_id=2),
-                User(username="李冰", age=36, price=45.63, description="中国上海", group_id=1)
-            ]
-            db.session.add_all(users)
-            groups = [
-                UserGroup(id=1, group_name="小学组"),
-                UserGroup(id=2, group_name="中学组"),
-                UserGroup(id=3, group_name="大学组")
-            ]
-            db.session.add_all(groups)
-            db.session.commit()
-
-            # 查询数据
-            # all(): 获取所有的查询结果
-            # first(): 获取第一个查询结果
-            # filter(UserGroup.id < 3, UserGroup.group_name=="小学组"): 比较查询
-            # filter(UserGroup.group_name.like("%组%")): 模糊查询
-            # in_(), notin_(): 属于, 不属于
-            # filter(UserGroup.id.in_([1, 2, 3, 4])): 范围查询
-            # filter(UserGroup.group_name == None): 判断为空
-            # filter(UserGroup.group_name.like("%组%")): 模糊查询
-            # 逻辑运算: or_, and_, not_
-            # filter(or_(UserGroup.id < 3, UserGroup.group_name=="小学组")): 模糊查询
-            # 分组
-            # group_by()和having(UserGroup.group_name): 分组
-            # 排序: 默认升序排列
-            # order_by(UserGroup.group_name)
-            # order_by(UserGroup.group_name.desc()):  # 按照降序排列
-            # 分页查询:
-            # limit(12), offset(0): 类似与sql中的 limit 0, 12
-            # 聚合函数: func.count(), func.sum(), func.min()
-            # 取别名: label("count")
-            # rs = db.session.query(UserGroup, func.sum(UserGroup.id).label("count")).group_by(UserGroup.group_name).all()
-            # 去重: distinct(UserGroup.id)
-            # rs = db.session.query(UserGroup).filter(UserGroup.id.in_([1, 2, 3, 4])).all()
-            # 关联查询: join()-内连接(inner join), outerjoin()-左连接(left join)
-            rs = db.session.query(UserGroup, User).join(UserGroup, User.group_id == UserGroup.id).all()
-            # 子查询: subquery()
-            # 查询各个分组中, 年纪最大的人名和对应的年龄
-            subset = db.session.query(User.group_id, func.max(User.age).label("max")).group_by(User.group_id).subquery()
-            res = db.session.query(User.id, User.age, UserGroup.group_name).filter(subset.c.max == User.age ).join(UserGroup, UserGroup.id == User.group_id).join(subset, subset.c.group_id == User.group_id)
-            print(res)
-
-            # 更新数据
-            res = db.session.query(User).filter(User.age == 70).update({"age": 60})
-            db.session.commit()
-
-            # 删除数据
-            res = db.session.query(User).filter(User.age == 60).delete()
-            db.session.commit()
-
-    ```

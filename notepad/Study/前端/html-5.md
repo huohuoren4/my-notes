@@ -23,19 +23,12 @@
         <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
         <!-- 自定义 css脚本 -->
         <style>
-            
-
-
         </style>
         <!-- 网页标题 -->
         <title>测试脚本</title>
     </head>
     <body>
         <!-- 网页正文 -->
-
-
-
-
         <!-- JS 脚本 -->
         <!-- jquery 脚本 -->
         <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
@@ -44,9 +37,6 @@
         <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
         <!-- 自定义 js脚本 -->
         <script>
-            
-
-
         </script>
     </body>
     </html>
@@ -216,10 +206,12 @@
     var str="hello, world"
     // 字符串的长度
     str1= str.length
-    // 返回字符串中检索指定字符第一次出现的位置
+    // 返回字符串中检索指定字符第一次出现的位置, 未找到返回-1
     str.indexOf('l')
-    // 检索与正则表达式相匹配的值
-    str.search('\w*?') 
+    // 检索与正则表达式相匹配的值第一次出现的位置, 未找到返回-1
+    str.search(/\w*?/) 
+    // 检索与正则表达式相匹配的值, 未找到返回null
+    str.match(/\w*?/)
     // 把字符串分割为子字符串数组
     str.split(',')
     // 替换与正则表达式匹配的子串
@@ -249,9 +241,11 @@
     a.push(23)  // 向数组尾部追加一个元素
     a.shift()   // 移除数组的第一个元素
     a.unshift()  // 向数组头部插入一个元素
-    a.slice(2,4)  // 截取数组的一部分
+    a.slice(2,4)  // 截取数组的一部分, slice(start?, end?)
+    a.splice(2, 4) // 截取数组的一部分, splice(start?, count?)
     a.reverse()  // 反转数组
     a.sort()   // 排序
+    a.filter() // 过滤元素
 
     ```
 ##### 3.2 jquery
@@ -369,6 +363,16 @@
     ```
 ##### vue2 的基本语法
     ```javascript
+    // 声明式导入与导出
+    export {mod01, mod02}
+    import {mod01, mod02} from 'test.js'
+    // 默认导入与导出
+    export default function name(params) {
+
+    }
+    import name from 'test.js'
+    // 声明式导入与默认导入组合
+    import name, {mod01, mod02} from 'test.js'
     
     ```
 

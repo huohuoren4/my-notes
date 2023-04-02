@@ -2023,139 +2023,777 @@
     ```
 
 ##### 2.4 k8s 的资源清单
-- 资源清单模板
+- 无状态负载
     ```yaml
     apiVersion: apps/v1
     kind: Deployment
     metadata:
-      name: nginx
+      annotations:
+        description: 无状态负载
       labels:
-        app: nginx
+        appgroup: ''
+        version: v1
+      name: deploy-nginx
+      namespace: default
     spec:
       selector:
         matchLabels:
-          octopusexport: OctopusExport
-      replicas: 3
-      strategy:
+          app: deploy-nginx
+          version: v1
+      template:
+        metadata:
+          labels:
+            app: deploy-nginx
+            version: v1
+        spec:
+          containers:        # 普通容器
+            - name: container-2          
+              image: tomcat:8-jdk11-adoptopenjdk-openj9
+              imagePullPolicy: IfNotPresent
+              command:        # 启动命令
+                - /bin/bash
+              args:
+                - '-c'
+                - while true; do echo hello; sleep 10; done
+              lifecycle:      # 生命周期
+                postStart:
+                  httpGet:
+                    path: /
+                    port: 80
+                    host: ''
+                    scheme: HTTP
+                preStop:
+                  httpGet:
+                    path: /
+                    port: 80
+                    host: ''
+                    scheme: HTTP
+              env:             # 环境变量
+                - name: PAAS_APP_NAME
+                  value: deploy-nginx
+                - name: PAAS_NAMESPACE
+                  value: default
+                - name: PAAS_PROJECT_ID
+                  value: 63201fe896034cb086e6177155724f6a
+                - name: env001
+                  value: '1111'
+                - name: env002-cm001
+                  valueFrom:
+                    configMapKeyRef:
+                      name: cm001
+                      key: key001
+                - name: env003-secret001
+                  valueFrom:
+                    secretKeyRef:
+                      name: secret001
+                      key: key0001
+              # 容器资源
+              # cpu为指数类型: Ki | Mi | Gi | Ti | Pi | Ei, 1024 = 1Ki
+              # memory为十进制类型:  m | "" | k | M | G | T | P | E, 1000 = 1k
+              resources:        # 容器资源       
+                requests:
+                  cpu: 250m
+                  memory: 512Mi
+                limits:
+                  cpu: 250m
+                  memory: 512Mi
+              volumeMounts:      # 容器卷挂载
+                - name: vol-168044584736079679
+                  readOnly: false
+                  mountPath: /test01-hostpath
+                  subPath: ''
+                - name: vol-168044587909181781
+                  readOnly: false
+                  mountPath: /test02-emptydir
+                  subPath: ''
+                - name: vol-168044590754891960
+                  readOnly: true
+                  mountPath: /test03-cm001
+                  subPath: ''
+                - name: vol-168044592245161310
+                  readOnly: true
+                  mountPath: /test04-secret001
+                  subPath: ''
+                - mountPath: /etc/localtime    # 容器与主机时间同步
+                  name: vol-168044572749516348
+                  readOnly: true
+              # 存活探针: 用于检测容器是否正常，类似于我们执行ps命令检查进程是否存在。一般必须配置
+              # 如果容器的存活检查失败，集群会对该容器执行重启操作；若容器的存活检查成功则不执行任何操作
+              # 探针目前均支持三种探测方式: httpGet, exec, tcpSocket
+              # httpGet: 调用Web应用的URL，如果返回的状态码在200到399之间，则认为程序正常，否则不正常
+              # exec: 在容器内执行一次命令，如果命令执行的退出码为0，则认为程序正常，否则不正常
+              # tcpSocket: 将会尝试访问一个用户容器的端口，如果能够建立这条连接，则认为程序正常，否则不正常
+              livenessProbe:       # 存活探针
+                httpGet:
+                  path: /
+                  port: 80
+                  host: ''
+                  scheme: HTTP
+                initialDelaySeconds: 0
+                timeoutSeconds: 1
+                periodSeconds: 10
+                successThreshold: 1
+                failureThreshold: 3
+              # 就绪探针: 用于检查用户业务是否就绪，如果未就绪，则不转发流量到当前实例
+              # 如果容器的就绪检查失败，集群会屏蔽请求访问该容器；若检查成功，则会开放对该容器的访问
+              readinessProbe:      # 就绪探针
+                tcpSocket:
+                  port: 80
+                initialDelaySeconds: 0
+                timeoutSeconds: 1
+                periodSeconds: 10
+                successThreshold: 1
+                failureThreshold: 3
+              # 启动探针: 用于探测应用程序容器什么时候启动了。 如果配置了这类探测器，
+              # 就可以控制容器在启动成功后再进行存活性和就绪检查， 确保这些存活、就绪探针不会影响应用程序的启动 
+              # 启动探针失败, 容器会重启. 一般不需要配置, 配置了会导致容器启动慢
+              startupProbe:
+                exec:
+                  command:
+                    - cat
+                    - test.txt
+                initialDelaySeconds: 0
+                timeoutSeconds: 1
+                periodSeconds: 10
+                successThreshold: 1
+                failureThreshold: 3
+              securityContext:    # 安装设置
+                privileged: true
+                readOnlyRootFilesystem: false   # 设置为true, 容器只读
+                runAsUser: 0
+          imagePullSecrets:
+            - name: default-secret
+          terminationGracePeriodSeconds: 30
+          dnsPolicy: ClusterFirst
+          # 容忍度: 容忍度应用于Pod上，允许（但并不要求）Pod 调度到带有与之匹配的污点的节点上       
+          # operator值是Exists，则value属性可以忽略; 值是Equal，则表示等于;不指定，则默认为Equal
+          # key如果为空, operator必须是Exists, 两者组合意味着匹配所有污点的key和value
+          # effect如果为空, 意味着匹配所有污点的effect
+          tolerations:           # 容忍度
+            - key: node.kubernetes.io/not-ready
+              operator: Equal
+              value: '123'
+              effect: NoExecute
+              tolerationSeconds: 300
+            - key: node.kubernetes.io/unreachable
+              operator: Exists
+              effect: NoExecute
+              tolerationSeconds: 300
+          affinity:               # 节点亲和
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values:
+                          - node01
+                          - node02
+                  - matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: Exists
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  preference:
+                    matchExpressions:
+                      - key: kubernetes.io/hostname
+                        operator: In
+                        values:
+                          - node01
+                          - node02
+                      - key: kubernetes.io/hostname
+                        operator: Exists
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - nginx
+                          - busybox
+                      - key: app01
+                        operator: Exists
+                  namespaces:
+                    - default
+                  topologyKey: kubernetes.io/hostname
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app
+                          operator: In
+                          values:
+                            - nginx
+                            - busybox
+                        - key: app01
+                          operator: Exists
+                    namespaces:
+                      - default
+                    topologyKey: kubernetes.io/hostname
+            podAntiAffinity:       # 容器亲和
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - busybox
+                          - nginx
+                      - key: app001
+                        operator: Exists
+                  namespaces:
+                    - default
+                  topologyKey: kubernetes.io/hostname
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 1
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: app
+                          operator: In
+                          values:
+                            - nginx
+                            - busybox
+                        - key: app01
+                          operator: Exists
+                    namespaces:
+                      - default
+                    topologyKey: kubernetes.io/hostname
+          initContainers:          # 初始化容器, 无需设置探针, 无生命周期
+            - name: container-1-init
+              image: swr.cn-north-4.myhuaweicloud.com/wx-2022/nginx-x86_x64:1.22-alpine
+              imagePullPolicy: IfNotPresent
+              command:            
+                - /bin/bash
+              args:
+                - '-c'
+                - while true; do echo hello; sleep 10; done
+              env:                 
+                - name: env001-init
+                  value: '12455'
+                - name: env002-init-cm001
+                  valueFrom:
+                    configMapKeyRef:
+                      name: cm001
+                      key: key001
+                - name: env003-init-secret001
+                  valueFrom:
+                    secretKeyRef:
+                      name: secret001
+                      key: key0001
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 512Mi
+                limits:
+                  cpu: 250m
+                  memory: 512Mi
+              volumeMounts:            
+                - name: vol-168044584736079679
+                  readOnly: false
+                  mountPath: /test01-hostpath-init
+                  subPath: ''
+                - name: vol-168044587909181781
+                  readOnly: false
+                  mountPath: /test02-emptydir-init
+                  subPath: ''
+                - name: vol-168044590754891960
+                  readOnly: true
+                  mountPath: /test003-cm001-init
+                  subPath: ''
+                - name: vol-168044592245161310
+                  readOnly: true
+                  mountPath: /test004-secret001-init
+                  subPath: ''
+                - name: pvc001       
+                  readOnly: false
+                  mountPath: /test005
+                  subPath: ''
+              securityContext:
+                privileged: true
+                runAsUser: 0
+          volumes:                        # 存储卷
+            - name: vol-168044584736079679
+              hostPath:
+                path: /test01-hostpath
+            - name: vol-168044587909181781
+              emptyDir:
+                medium: Memory
+            - name: vol-168044590754891960
+              configMap:
+                name: cm001
+            - name: vol-168044592245161310
+              secret:
+                secretName: secret001
+            - type: HostPath
+              name: vol-168044572749516348
+              hostPath:
+                path: /etc/localtime
+                  volumes:
+            - name: pvc001              # 使用PVC
+              persistentVolumeClaim:
+                claimName: pvc001
+      replicas: 2
+      revisionHistoryLimit: 10
+      strategy:                          # 更新策略
         type: RollingUpdate
         rollingUpdate:
           maxUnavailable: 25%
           maxSurge: 25%
+      progressDeadlineSeconds: 600
+    ---
+    apiVersion: v1                   
+    kind: Service                        # ClusterIP类型服务         
+    metadata:
+      name: deploy-nginx
+      namespace: default
+      labels:
+        app: deploy-nginx
+        version: v1
+      annotations: {}
+    spec:
+      selector:
+        app: deploy-nginx
+        version: v1
+      ports:
+        - name: cce-service-0
+          targetPort: 80
+          nodePort: 0
+          port: 80
+          protocol: TCP
+      type: ClusterIP                 
+      ipFamilies:
+        - IPv4
+      ipFamilyPolicy: SingleStack
+    ---
+    apiVersion: v1
+    kind: Service                       # NodePort类型服务   
+    metadata:
+      name: deploy-nginx001
+      namespace: default
+      labels:
+        app: deploy-nginx
+        version: v1
+      annotations: {}
+    spec:
+      selector:
+        app: deploy-nginx
+        version: v1
+      externalTrafficPolicy: Cluster
+      ports:
+        - name: cce-service-0
+          targetPort: 80
+          nodePort: 30010
+          port: 80
+          protocol: TCP
+        - name: cce-service-1
+          targetPort: 81
+          nodePort: 0                  # nodePort 默认范围为30000-32767                
+          port: 81
+          protocol: TCP
+      type: NodePort                   # ClusterIP, NodePort, and LoadBalancer
+      ipFamilies:
+        - IPv4
+      ipFamilyPolicy: SingleStack
+    ```
+
+- 有状态负载
+    ```yaml
+    apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      annotations:
+        description: 有状态负载
+      labels:
+        appgroup: ''
+        version: v1
+      name: stateful-mysql
+      namespace: default
+    spec:
+      selector:
+        matchLabels:
+          app: stateful-mysql
+          version: v1
+      template:
+        metadata:
+          annotations:
+            pod.alpha.kubernetes.io/initialized: 'true'
+          labels:
+            app: stateful-mysql
+            version: v1
+        spec:
+          containers:     # 与无状态应用差不多, 就是更新策略有点差别, 还有就是使用PVC
+            - name: container-1
+              image: swr.cn-north-4.myhuaweicloud.com/wx-2022/mysql-x86_x64:5.7
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: PAAS_APP_NAME
+                  value: stateful-mysql
+                - name: PAAS_NAMESPACE
+                  value: default
+                - name: PAAS_PROJECT_ID
+                  value: 63201fe896034cb086e6177155724f6a
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 512Mi
+                limits:
+                  cpu: 250m
+                  memory: 512Mi
+              volumeMounts:
+                - name: pvc001
+                  readOnly: false
+                  mountPath: /test-pvc
+                  subPath: ''
+                - mountPath: /etc/localtime
+                  name: vol-168045026904348917
+                  readOnly: true
+              securityContext:
+                privileged: true
+          imagePullSecrets:
+            - name: default-secret
+          terminationGracePeriodSeconds: 30
+          dnsPolicy: ClusterFirst
+          tolerations: null
+          initContainers: []
+          volumes:
+            - name: pvc001
+              persistentVolumeClaim:
+                claimName: pvc001
+            - type: HostPath
+              name: vol-168045026904348917
+              hostPath:
+                path: /etc/localtime
+      serviceName: headless-np9qol
+      replicas: 2
+      # 默认实例管理策略，有状态负载会逐个的、按顺序的进行部署、删除、伸缩实例, 只有前一个实例部署Ready或者删除完成后，有状态负载才会操作后一个实例
+      podManagementPolicy: OrderedReady  
+      revisionHistoryLimit: 10
+      updateStrategy:
+        type: RollingUpdate
+    ---
+    apiVersion: v1
+    kind: Service         # headless 服务
+    metadata:
+      name: headless-np9qol
+      namespace: default
+      labels:
+        app: stateful-mysql
+        version: v1
+      annotations:
+        service.alpha.kubernetes.io/tolerate-unready-endpoints: 'true'
+    spec:
+      selector:
+        app: stateful-mysql
+        version: v1
+      clusterIP: None      # 集群IP为空   
+      ports:
+        - name: port-0
+          targetPort: 3306
+          nodePort: 0
+          port: 3306
+          protocol: TCP
+      type: ClusterIP
+    ```
+
+- 守护进程 (每个节点上只有一个pod示例)
+    ```yaml
+    apiVersion: apps/v1
+    kind: DaemonSet
+    metadata:
+      annotations:
+        description: 守护进程
+      labels:
+        appgroup: ''
+        version: v1
+      name: daemonset-busybox
+      namespace: default
+    spec:
+      selector:
+        matchLabels:
+          app: daemonset-busybox
+          version: v1
       template:
         metadata:
           labels:
-            app: nginx
-            octopusexport: OctopusExport
+            app: daemonset-busybox
+            version: v1
         spec:
-          volumes:
-            - name: v-test
-              hostPath:
-                path: /test
-                type: DirectoryOrCreate
-            - name: vol-time           # 节点时间与容器时间同步
-              hostPath:
-                path: /etc/localtime
-                type: ''
-          containers:
-            - name: container-0
-              image: 'nginx:1.22-alpine'
+          containers:        # 与无状态应用差不多, 就是更新策略有点差别, 没有replicas字段
+            - name: container-1
+              image: busybox:1.31.0
               imagePullPolicy: IfNotPresent
-              # command:
-              #   - 'echo'
-              # args:
-              #   - 'hello,world'
-              ports:
-                - name: port-0
-                  containerPort: 80
-                  protocol: TCP
               env:
-                - name: NAME
-                  value: test123
-              volumeMounts:
-                - name: v-test
-                  mountPath: /test
-                  subPath: ''
-                - name: vol-time
-                  readOnly: true
-                  mountPath: /etc/localtime
+                - name: PAAS_APP_NAME
+                  value: daemonset-busybox
+                - name: PAAS_NAMESPACE
+                  value: default
+                - name: PAAS_PROJECT_ID
+                  value: 63201fe896034cb086e6177155724f6a
               resources:
                 requests:
-                  memory: 100Mi           # 指数类型: Ki | Mi | Gi | Ti | Pi | Ei, 1024 = 1Ki
-                  cpu: 100m               # 十进制类型:  m | "" | k | M | G | T | P | E, 1000 = 1k
+                  cpu: 250m
+                  memory: 512Mi
                 limits:
-                  memory: 100Mi
-                  cpu: 100m
-              livenessProbe:               # 存活探针: 用于检测容器是否正常，类似于我们执行ps命令检查进程是否存在。一般必须配置
-                failureThreshold: 3        # 如果容器的存活检查失败，集群会对该容器执行重启操作；若容器的存活检查成功则不执行任何操作
-                initialDelaySeconds: 10    # 探针目前均支持三种探测方式: httpGet, exec, tcpSocket
-                periodSeconds: 10          # httpGet: 调用Web应用的URL，如果返回的状态码在200到399之间，则认为程序正常，否则不正常
-                successThreshold: 1        # exec: 在容器内执行一次命令，如果命令执行的退出码为0，则认为程序正常，否则不正常
-                successThreshold: 1        # tcpSocket: 将会尝试访问一个用户容器的端口，如果能够建立这条连接，则认为程序正常，否则不正常
-                timeoutSeconds: 10
-                httpGet:
-                  host: ''
-                  path: /
-                  port: 80
-                  scheme: HTTP
-              readinessProbe:              # 就绪探针: 用于检查用户业务是否就绪，如果未就绪，则不转发流量到当前实例
-                failureThreshold: 3        # 如果容器的就绪检查失败，集群会屏蔽请求访问该容器；若检查成功，则会开放对该容器的访问
-                initialDelaySeconds: 10
-                periodSeconds: 10
-                successThreshold: 1
-                timeoutSeconds: 10
-                httpGet:
-                  host: ''
-                  path: /
-                  port: 80
-                  scheme: HTTP
-              # startupProbe:                 # 启动探针: 用于探测应用程序容器什么时候启动了。 如果配置了这类探测器，
-              #   failureThreshold: 3         # 就可以控制容器在启动成功后再进行存活性和就绪检查， 确保这些存活、就绪探针不会影响应用程序的启动 
-              #   initialDelaySeconds: 10     # 启动探针失败, 容器会重启. 一般不需要配置, 配置了会导致容器启动慢
-              #   periodSeconds: 10
-              #   successThreshold: 1
-              #   timeoutSeconds: 10
-              #   httpGet:
-              #     host: ''
-              #     path: /
-              #     port: 80
-              #     scheme: HTTP
-              # lifecycle:
-              #   preStop:
-              #     exec:
-              #       command:
-              #         - rm
-              #         - '-rf'
-              #         - /test/123.txt
-              #   postStart:
-              #     exec:
-              #       command:
-              #         - touch
-              #         - /test/123.txt
-              securityContext:
-                privileged: true
-                readOnlyRootFilesystem: false
-                runAsGroup: 0
-                runAsUser: 0
-          # tolerations:                    # 容忍度: 容忍度应用于Pod上，允许（但并不要求）Pod 调度到带有与之匹配的污点的节点上       
-          # - key: "key1"                   # operator值是Exists，则value属性可以忽略; 值是Equal，则表示等于;不指定，则默认为Equal
-          #   operator: "Equal"             # key如果为空, operator必须是Exists, 两者组合意味着匹配所有污点的key和value
-          #   value: "value1"               # effect如果为空, 意味着匹配所有污点的effect
-          #   effect: "NoSchedule"  
-          #   tolerationSeconds: 3600
+                  cpu: 250m
+                  memory: 512Mi
+              volumeMounts:
+                - mountPath: /etc/localtime
+                  name: vol-168045126625130645
+                  readOnly: true
+          imagePullSecrets:
+            - name: default-secret
+          terminationGracePeriodSeconds: 30
+          dnsPolicy: ClusterFirst
+          tolerations: null
+          initContainers: []
+          volumes:
+            - type: HostPath
+              name: vol-168045126625130645
+              hostPath:
+                path: /etc/localtime
+      revisionHistoryLimit: 10
+      updateStrategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 1
     ---
     apiVersion: v1
-    kind: Service   
+    kind: Service
     metadata:
-      name: nginx-service
+      name: daemonset-busybox
+      namespace: default
+      labels:
+        app: daemonset-busybox
+        version: v1
+      annotations: {}
     spec:
       selector:
-        app: nginx
-      type: NodePort  # ClusterIP, NodePort, and LoadBalancer
+        app: daemonset-busybox
+        version: v1
       ports:
-      - name: service01
-        targetPort: 80
-        port: 8080
-        nodePort: 30130  # nodePort 默认范围为30000-32767
+        - name: cce-service-0
+          targetPort: 8000
+          nodePort: 0
+          port: 8000
+          protocol: TCP
+      type: ClusterIP
+      ipFamilies:
+        - IPv4
+      ipFamilyPolicy: SingleStack
+    ```
+
+- 普通任务 
+    ```yaml
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      annotations:
+        description: 普通任务
+      enable: true
+      name: job-01
+      namespace: default
+      lables: {}
+    spec:
+      completions: 10      # 任务设置
+      parallelism: 2       # 任务负载执行过程中允许同时创建的最大实例数，并行数应不大于实例数. 注意不要超出节点资源上限
+      activeDeadlineSeconds: 300   # 当任务执行超出该时间时，任务将会被标识为执行失败，任务下的所有实例都会被删除。为空时表示不设置超时时间
+      template:
+        metadata:
+          enable: true
+          name: job-01
+          labels:
+            app: job-01
+            version: v1
+        spec:
+          containers:      # 普通任务不能与无状态相比, 它的字段很少
+            - name: container-1
+              image: alpine:3.7.3
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/bash
+              args:
+                - '-c'
+                - sleep 10
+              lifecycle:
+                postStart:
+                  httpGet:
+                    path: /
+                    port: 80
+                    host: ''
+                    scheme: HTTP
+                preStop:
+                  httpGet:
+                    path: /
+                    port: 80
+                    host: ''
+                    scheme: HTTP
+              env:       # 环境变量设置与无状态一样
+                - name: PAAS_APP_NAME
+                  value: cronjob-01
+                - name: PAAS_NAMESPACE
+                  value: default
+                - name: PAAS_PROJECT_ID
+                  value: 63201fe896034cb086e6177155724f6a
+                - name: env
+                  value: '123'
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 100Mi
+                limits:
+                  cpu: 100000m
+                  memory: 100Mi
+              volumeMounts:
+                - name: vol-168045363713049147
+                  readOnly: false
+                  mountPath: /test001
+                  subPath: ''
+              securityContext:
+                privileged: true
+          imagePullSecrets:
+            - name: default-secret
+          restartPolicy: OnFailure  # 重启策略只有Never, OnFailure
+          volumes:          # 容器卷设置与无状态一样
+            - name: vol-168045363713049147
+              emptyDir:
+                medium: ''
+          dnsConfig:
+            options:
+              - name: single-request-reopen
+          initContainers: []
+    ```
+
+- 定时任务
+    ```yaml
+    apiVersion: batch/v1beta1
+    kind: CronJob
+    metadata:
+      annotations:
+        description: 定时任务
+      enable: true
+      name: cronjob-01
+      namespace: default
+    spec:
+      # 并行策略
+      # Forbid: 在前一个任务未完成时，不创建新任务
+      # Allow: 在前一个任务未完成时，可以创建新任务
+      # Replace: 当到达新任务创建时间点，而前一个任务未完成时，新的任务会取代前一个任务
+      concurrencyPolicy: Forbid   
+      successfulJobsHistoryLimit: 3
+      failedJobsHistoryLimit: 1
+      schedule: 0 */1 * * *   # 类似与shell中的crontab命令, 依次表示: min, hour, day, month, week
+      jobTemplate:
+        metadata:
+          enable: true
+        spec:
+          template:
+            metadata:
+              enable: true
+              labels:
+                app: cronjob-01
+                version: v1
+            spec:
+              containers:   # 容器设置与普通任务类似
+                - name: container-1
+                  image: alpine:3.10.2
+                  imagePullPolicy: IfNotPresent
+                  command:
+                    - /bin/sh
+                  args:
+                    - '-c'
+                    - sleep 10
+                  lifecycle:
+                    postStart:
+                      httpGet:
+                        path: /
+                        port: 80
+                        host: ''
+                        scheme: HTTP
+                    preStop:
+                      httpGet:
+                        path: /
+                        port: 80
+                        host: ''
+                        scheme: HTTP
+                  env:
+                    - name: PAAS_APP_NAME
+                      value: cronjob-01
+                    - name: PAAS_NAMESPACE
+                      value: default
+                    - name: PAAS_PROJECT_ID
+                      value: 63201fe896034cb086e6177155724f6a
+                    - name: env
+                      value: '123'
+                  resources:
+                    requests:
+                      cpu: 100m
+                      memory: 100Mi
+                    limits:
+                      cpu: 100000m
+                      memory: 100Mi
+                  volumeMounts:
+                    - name: vol-168045363713049147
+                      readOnly: false
+                      mountPath: /test001
+                      subPath: ''
+                  securityContext:
+                    privileged: true
+              imagePullSecrets:
+                - name: default-secret
+              restartPolicy: OnFailure
+              dnsConfig:
+                options:
+                  - name: single-request-reopen
+              initContainers: []
+    ```
+
+- 配置项与密钥
+    ```yaml
+    apiVersion: v1
+    kind: ConfigMap
+    data:
+      key0001: '1111111111111111111111111111'
+    binaryData: {}
+    metadata:
+      annotations:
+        description: '11111111111'
+        originName: cm002
+        currentVersion: '1'
+      name: cm002
+      namespace: default
+      labels: {}
+    ---
+    apiVersion: v1
+    kind: Secret
+    data:
+      key0001: MTExMTExMTE=
+    metadata:
+      annotations:
+        description: '11111'
+      name: secret001
+      namespace: default
+      labels: {}
+    type: Opaque  # 一般类型
+    ```
+
+- 持久化存储
+    ```yaml
+    apiVersion: v1
+    kind: PersistentVolumeClaim   # 创建PVC
+    metadata:
+      name: pvc001
+      namespace: default
+      annotations: {}
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: csi-sfs
     ```
 
 ##### 2.5 部署Dashboard
