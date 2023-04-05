@@ -116,6 +116,7 @@
     - `netstat -tlunp | grep 22` ***查看某个端口是否可访问( -p 进程PID/名字)***
       - Centos安装 netstat 指令: `yum install net-tools -y`
     - `cat /proc/net/dev`: ***查看网卡的收发包数量(bytes), 使用`ifconfig`也可以查看***
+    - 私有网络的推荐子网: `10.0.0.0/8~24; 172.16.0.0/12~24 ; 192.168.0.0/16~24`, 掩码主要用来判断ip是否在一个子网内
 
   - 磁盘
     - `du -sh ./test` ***显示目录test的总容量(以可读单位显示：K, M, G )***

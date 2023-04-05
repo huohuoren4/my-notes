@@ -2046,6 +2046,8 @@
             app: deploy-nginx
             version: v1
         spec:
+          nodeSelector:      # 节点选择, 属于硬亲和, 如果指定节点上无法调度, pod会一直处于pending
+            kubernetes.io/nodename: node01-20
           containers:        # 普通容器
             - name: container-2          
               image: tomcat:8-jdk11-adoptopenjdk-openj9
@@ -2179,13 +2181,13 @@
               operator: Exists
               effect: NoExecute
               tolerationSeconds: 300
-          affinity:               # 节点亲和
+          affinity:               # 节点亲和, 没有节点反亲和
             nodeAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
                 nodeSelectorTerms:
                   - matchExpressions:
                       - key: kubernetes.io/hostname
-                        operator: In
+                        operator: In   # In, NotIn, Exists, DoesNotExist. 
                         values:
                           - node01
                           - node02
@@ -2203,7 +2205,7 @@
                           - node02
                       - key: kubernetes.io/hostname
                         operator: Exists
-            podAffinity:
+            podAffinity:           # pod亲和
               requiredDuringSchedulingIgnoredDuringExecution:
                 - labelSelector:
                     matchExpressions:
@@ -2216,7 +2218,9 @@
                         operator: Exists
                   namespaces:
                     - default
-                  topologyKey: kubernetes.io/hostname
+                  # kubernetes.io/hostname这个拓扑域，意思就是我们当前调度的 pod 要和目标的 pod 处于同一个主机上面
+                  # 常用的拓扑域: kubernetes.io/hostname,  kubernetes.io/arch, kubernetes.io/os
+                  topologyKey: kubernetes.io/hostname   
               preferredDuringSchedulingIgnoredDuringExecution:
                 - weight: 100
                   podAffinityTerm:
@@ -2232,7 +2236,7 @@
                     namespaces:
                       - default
                     topologyKey: kubernetes.io/hostname
-            podAntiAffinity:       # 容器亲和
+            podAntiAffinity:       # 容器反亲和
               requiredDuringSchedulingIgnoredDuringExecution:
                 - labelSelector:
                     matchExpressions:
@@ -2337,7 +2341,7 @@
                 claimName: pvc001
       replicas: 2
       revisionHistoryLimit: 10
-      strategy:                          # 更新策略
+      strategy:                         # 更新策略
         type: RollingUpdate
         rollingUpdate:
           maxUnavailable: 25%
@@ -2644,7 +2648,7 @@
                   cpu: 100m
                   memory: 100Mi
                 limits:
-                  cpu: 100000m
+                  cpu: 100m
                   memory: 100Mi
               volumeMounts:
                 - name: vol-168045363713049147
@@ -2779,22 +2783,213 @@
     type: Opaque  # 一般类型
     ```
 
-- 持久化存储
-    ```yaml
-    apiVersion: v1
-    kind: PersistentVolumeClaim   # 创建PVC
-    metadata:
-      name: pvc001
-      namespace: default
-      annotations: {}
-    spec:
-      accessModes:
-        - ReadWriteMany
-      resources:
-        requests:
-          storage: 1Gi
-      storageClassName: csi-sfs
-    ```
+- 持久化存储pvc
+    - 存储源: NFS
+        ```shell
+        # 服务端安装nfs
+        yum install -y rpcbind nfs-utils
+        # 增加配置文件, *:表示任意ip, 可以是子网192.168.1.0/24, rw:读写, sync:同步写入, no_root_squash:使用root登录时, 获取服务器root权限
+        mkdir /nfs && echo '/nfs 192.168.56.0/24(rw,sync,no_root_squash)' > /etc/exports
+        # 先启动rpcbind服务, 再启动nfs. nfs端口：2049, rpcbind端口：111, 需要在安全组中打开
+        systemctl enable rpcbind --now && systemctl enable nfs --now
+        # 查看nfs详细信息
+        exportfs -v
+
+        # 客户端安装nfs
+        yum install -y rpcbind nfs-utils
+        # 先启动rpcbind服务, 再启动nfs.
+        systemctl enable rpcbind --now && systemctl enable nfs --now
+        # 查看nfs服务器可挂载目录, -e nfs服务器IP
+        showmount -e 192.168.56.21
+        # 挂载目录
+        # mkdir -p /root/nfs && mount -t nfs 192.168.56.21:/nfs /root/nfs
+        ```
+    - PVC, PV, storageClass的关系
+        ```shell
+        # pvc与pv是一一对应的关系, pv需要运维人员手动创建, 很不方便. 映射关系: pod -> pvc -> pv -> 实际存储设备
+        # pvc与storageClass是多对一的关系, pvc绑定storageClass后, storageClass会自动创建pv给pvc. 
+        # 映射关系: pod -> pvc -> storageClass -> 实际存储设备
+        # pv的生命周期: 
+        # ACCESS MODES（访问模式）:
+        # AccessModes 是用来对 PV 进行访问模式的设置，用于描述用户应用对存储资源的访问权限，访问权限包括下面几种方式:
+        # • ReadWriteOnce（RWO）:读写权限，但是只能被单个节点挂载
+        # • ReadOnlyMany（ROX）:只读权限，可以被多个节点挂载
+        # • ReadWriteMany（RWX）:读写权限，可以被多个节点挂载
+        # RECLAIM POLICY（回收策略）:
+        # 目前 PV 支持的策略有三种:
+        # • Retain（保留）: 保留数据，需要管理员手工清理数据
+        # • Recycle（回收）:清除 PV 中的数据，效果相当于执行 rm -rf /ifs/kuberneres/*，PV改变为Available状态
+        # • Delete（删除）:与 PV 相连的后端存储同时删除
+        # 修改回收策略:persistentVolumeReclaimPolicy: Retain
+        # STATUS（状态）:
+        # 一个 PV 的生命周期中，可能会处于4中不同的阶段:
+        # • Available（可用）:表示可用状态，还未被任何 PVC 绑定
+        # • Bound（已绑定）:表示 PV 已经被 PVC 绑定
+        # • Released（已释放）:PVC 被删除，但是资源还未被集群重新声明
+        # • Failed（失败）: 表示该 PV 的自动回收失败
+        ```
+    - nfs-client 插件资源清单
+        ```yaml
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: nfs-client-provisioner
+          # replace with namespace where provisioner is deployed
+          namespace: kubernetes-dashboard
+        ---
+        kind: ClusterRole
+        apiVersion: rbac.authorization.k8s.io/v1
+        metadata:
+          name: nfs-client-provisioner-runner
+        rules:
+          - apiGroups: [""]
+            resources: ["nodes"]
+            verbs: ["get", "list", "watch"]
+          - apiGroups: [""]
+            resources: ["persistentvolumes"]
+            verbs: ["get", "list", "watch", "create", "delete"]
+          - apiGroups: [""]
+            resources: ["persistentvolumeclaims"]
+            verbs: ["get", "list", "watch", "update"]
+          - apiGroups: ["storage.k8s.io"]
+            resources: ["storageclasses"]
+            verbs: ["get", "list", "watch"]
+          - apiGroups: [""]
+            resources: ["events"]
+            verbs: ["create", "update", "patch"]
+        ---
+        kind: ClusterRoleBinding
+        apiVersion: rbac.authorization.k8s.io/v1
+        metadata:
+          name: run-nfs-client-provisioner
+        subjects:
+          - kind: ServiceAccount
+            name: nfs-client-provisioner
+            # replace with namespace where provisioner is deployed
+            namespace: kubernetes-dashboard
+        roleRef:
+          kind: ClusterRole
+          name: nfs-client-provisioner-runner
+          apiGroup: rbac.authorization.k8s.io
+        ---
+        kind: Role
+        apiVersion: rbac.authorization.k8s.io/v1
+        metadata:
+          name: leader-locking-nfs-client-provisioner
+          # replace with namespace where provisioner is deployed
+          namespace: kubernetes-dashboard
+        rules:
+          - apiGroups: [""]
+            resources: ["endpoints"]
+            verbs: ["get", "list", "watch", "create", "update", "patch"]
+        ---
+        kind: RoleBinding
+        apiVersion: rbac.authorization.k8s.io/v1
+        metadata:
+          name: leader-locking-nfs-client-provisioner
+          # replace with namespace where provisioner is deployed
+          namespace: kubernetes-dashboard
+        subjects:
+          - kind: ServiceAccount
+            name: nfs-client-provisioner
+            # replace with namespace where provisioner is deployed
+            namespace: kubernetes-dashboard
+        roleRef:
+          kind: Role
+          name: leader-locking-nfs-client-provisioner
+          apiGroup: rbac.authorization.k8s.io
+        ---
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: nfs-client-provisioner
+          labels:
+            app: nfs-client-provisioner
+          # replace with namespace where provisioner is deployed
+          namespace: kubernetes-dashboard
+        spec:
+          replicas: 1
+          strategy:
+            type: Recreate
+          selector:
+            matchLabels:
+              app: nfs-client-provisioner
+          template:
+            metadata:
+              labels:
+                app: nfs-client-provisioner
+            spec:
+              serviceAccountName: nfs-client-provisioner
+              containers:
+                - name: nfs-client-provisioner
+                  image: lizhenliang/nfs-subdir-external-provisioner:v4.0.1
+                  volumeMounts:
+                    - name: nfs-client-root
+                      mountPath: /persistentvolumes
+                  env:
+                    - name: PROVISIONER_NAME
+                      value: k8s-sigs.io/nfs-subdir-external-provisioner
+                    - name: NFS_SERVER
+                      value: 192.168.56.21 # nfs服务器的ip地址
+                    - name: NFS_PATH
+                      value: /nfs          # nfs服务器的共享目录
+              volumes:
+                - name: nfs-client-root
+                  nfs:
+                    server: 192.168.56.21   # nfs服务器的ip地址
+                    path: /nfs              # nfs服务器的共享目录
+        ---
+        apiVersion: storage.k8s.io/v1
+        kind: StorageClass
+        metadata:
+          name: nfs-client
+        provisioner: k8s-sigs.io/nfs-subdir-external-provisioner # or choose another name, must match deployment's env PROVISIONER_NAME'
+        parameters:
+          archiveOnDelete: "false"
+        ```
+    - 测试插件
+        ```yaml
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: web-pvc2
+          namespace: default
+        spec:
+          selector:
+            matchLabels:
+              app: nginx
+          replicas: 3
+          template:
+            metadata:
+              labels:
+                app: nginx
+            spec:
+              containers:
+              - name: nginx
+                image: 'nginx:1.22-alpine'
+                volumeMounts:
+                - name: wwwroot
+                  mountPath: /usr/share/nginx/html
+              volumes:
+              - name: wwwroot
+                persistentVolumeClaim:
+                  claimName: web-pvc2
+        ---
+        apiVersion: v1
+        kind: PersistentVolumeClaim    # 创建pvc
+        metadata:
+          name: web-pvc2
+          namespace: default
+        spec:
+          storageClassName: "nfs-client"
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 5Gi
+        ```
+
+- 权限管理
 
 ##### 2.5 部署Dashboard
 - 安装步骤

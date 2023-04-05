@@ -412,7 +412,7 @@
 	// 切片: 长度不固定, 引用传递
 	arr01 := []int{1, 2, 3}
     arr02 := make([]int , 3, 5)
-
+  
     // range
     // for 循环的 range 格式可以对 slice、map、数组、字符串等进行迭代循环
 	for _, v := range s {
@@ -630,7 +630,7 @@
     len(arr), cap(arr)
     
     // 追加元素元素
-    // 切片进行append操作, 如果没有发生扩容, 切片指向数组的地址不会发生改变, 可以通过数组的首地址`&slice[0]`判断. 如果没有发生扩容, 切片指向数组的地址发生改变
+    // 切片进行append操作, 切片指向数组的地址发生改变, 可以通过数组的首地址`&slice[0]`判断. 
     append(arr, 10, 29)
     // 中间插入, "s[1:]...": 数组的拆包
     s01 := append(s[:1], append([]int{89}, s[1:]...)...)
@@ -641,7 +641,6 @@
     // func copy(dst, src []T) int copy 方法将类型为 T 的切片从源地址 src 拷贝到目标地址 dst，覆盖 dst 的相关元素，并且返回拷贝的元素个数。目标数组的地址不会发生改变, src的长度小于等于dst
     // 切片的赋值本质是传递数组的地址
     slice01=s
-
 
     // 集合的常用函数
 	// 添加, 获取元素
@@ -710,9 +709,9 @@
     )
 
     type YamlStruct struct {
-	Name    string `yaml:"name" json:"name"`
-	Age     int    `yaml:"age" json:"age"`
-	Address string `yaml:"address" json:"address"`
+        Name    string `yaml:"name" json:"name"`
+        Age     int    `yaml:"age" json:"age"`
+        Address string `yaml:"address" json:"address"`
     }
 
     /**
@@ -781,12 +780,12 @@
 
     // logrus的使用
     import (
-	"bytes"
-	"fmt"
-	"github.com/sirupsen/logrus"
-	"log"
-	"os"
-	"path/filepath"
+        "bytes"
+        "fmt"
+        "github.com/sirupsen/logrus"
+        "log"
+        "os"
+        "path/filepath"
     )
 
     type MyFormatter struct {}
@@ -1265,8 +1264,24 @@
     ```
 - 数据库操作: Gorm
 
+- 颜色打印
+    ```go
+    import (
+        "fmt"
+        "github.com/fatih/color"
+    )
 
-##### Beego框架
+    func main() {
+        color.Set(color.FgGreen)
+        fmt.Println("1111")
+        color.Set(color.FgYellow)
+        fmt.Println("1111")
+        color.Set(color.FgRed)
+        fmt.Println("1111")
+    }
+    ```
+
+#### 2. Beego框架
 - beego的安装与使用
     ```shell
     # 安装beego与bee工具(不需要在`go mod`项目文件中使用)
@@ -1286,7 +1301,7 @@
     bee pack
     ```
 
-##### Gin 框架
+#### 3. Gin 框架
 - Gin的路由
     ```go
     package main
