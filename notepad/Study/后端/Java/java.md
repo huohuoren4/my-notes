@@ -716,12 +716,7 @@
     // 注意: 自定义注解中，设置了默认值的属性在使用时可以不用定义值，但是没被设置默认值的属性使用时一定要定义属性值。
 
     ```
-##### 4.3 设计模式
 
-##### 4.4 算法与数据结构
-
-
----
 #### 5. SpringBoot 框架
 ##### 5.1 SpringBoot 基本知识 
 - Springboot 框架的参考地址: <b style="color: green;" >🥦 [狂神说 ](https://blog.csdn.net/qq_41978509/article/details/116104434) 🥦</b>  
@@ -1412,6 +1407,7 @@
         </delete>
     </mapper>   
     ```
+
 ##### 5.5 Shiro 框架
 - shiro 三大要素
   - `subject -> ShiroFilterFactoryBean` ----当前用户
@@ -1473,8 +1469,5 @@
     </suite>
     
     ```
-
-##### 6.2 UI 自动化框架
-
 ---
 #### 7. Springboot 项目实战

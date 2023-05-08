@@ -315,7 +315,6 @@
             console.log("响应的状态码:", status_code)
         }
     });
-
     ```
 ---
 #### 5. Vue2
@@ -353,14 +352,15 @@
     electron_mirror=https://npm.taobao.org/mirrors/electron/
     always-auth = false
 
-    # 安装 vue@2.6.10, @vue/cli@5.0.8
-    npm install -g vue@2.6.10  @vue/cli@5.0.8
+    # 安装 vue和vue/cli
+    npm install vue
+    npm install -g @vue/cli
     # 创建项目
     vue --version     # 查看 vue 的版本
     vue create 项目名 # 创建项目
     vue ui            # 打开图形化界面
-
     ```
+
 ##### vue2 的基本语法
     ```javascript
     // 声明式导入与导出
@@ -373,7 +373,6 @@
     import name from 'test.js'
     // 声明式导入与默认导入组合
     import name, {mod01, mod02} from 'test.js'
-    
     ```
 
 

@@ -1262,7 +1262,6 @@
         DeleteUser()
     }
     ```
-- 数据库操作: Gorm
 
 - 颜色打印
     ```go
@@ -1453,105 +1452,121 @@
     ```
 
 - Gin整合Gorm
-```go
-import (
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"log"
-)
+    ```go
+    import (
+        "gorm.io/driver/mysql"
+        "gorm.io/gorm"
+        "log"
+    )
 
-type BlogUser struct {
-	gorm.Model
-	Username string `gorm:"size:50;not null"`
-	Age uint8 `gorm:"not null;default:20"`
-	Price float32 `gorm:"not null;precision:5;scale:2"`
-	Description string `gorm:"size:255;not null"`
-	GroupID uint `gorm:"not null;comment:组ID"`
-}
+    type BlogUser struct {
+        gorm.Model
+        Username string `gorm:"size:50;not null"`
+        Age uint8 `gorm:"not null;default:20"`
+        Price float32 `gorm:"not null;precision:5;scale:2"`
+        Description string `gorm:"size:255;not null"`
+        GroupID uint `gorm:"not null;comment:组ID"`
+    }
 
-type BlogGroup struct {
-	gorm.Model
-	GroupName string `gorm:"size:20;not null;default:小学组"`
-}
+    type BlogGroup struct {
+        gorm.Model
+        GroupName string `gorm:"size:20;not null;default:小学组"`
+    }
 
 
-func main() {
-	// 与数据建立连接
-	dsn:="root:123456@tcp(106.13.223.242:3306)/test?charset=utf8&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	// 创建表
-	err = db.AutoMigrate(&BlogUser{})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	err = db.AutoMigrate(&BlogGroup{})
-	if err != nil {
-		log.Fatalln(err)
-	}
-	// 插入数据
-	db.Create(&[]BlogUser{
-		{Username:"小唐", Age: 0, Price: 12.30, Description: "广东省深圳市松白路", GroupID: 1},
-		{Username:"小明", Age: 13, Price: 30.00, Description: "美国洛杉矶", GroupID: 1},
-		{Username:"小章",Age: 70, Price: 89.00, Description: "英国伦敦", GroupID: 3},
-		{Username:"王小名", Age: 40, Price: 45.00, Description: "法国巴黎", GroupID: 2},
-		{Username:"艾伦", Age: 1, Price: 14.00, Description: "古巴比伦", GroupID: 2},
-		{Username:"李冰", Age: 36, Price: 45.63, Description: "中国上海", GroupID: 1},
-	})
-	db.Create(&[]BlogGroup{
-		{ID: 1, GroupName: "中学组"}, {ID: 2,GroupName: "大学组"}, {ID: 3,GroupName: "小学组"},
-	})
+    func main() {
+        // 与数据建立连接
+        dsn:="root:123456@tcp(106.13.223.242:3306)/test?charset=utf8&parseTime=True&loc=Local"
+        db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+        if err != nil {
+            log.Fatalln(err)
+        }
+        // 创建表
+        err = db.AutoMigrate(&BlogUser{})
+        if err != nil {
+            log.Fatalln(err)
+        }
+        err = db.AutoMigrate(&BlogGroup{})
+        if err != nil {
+            log.Fatalln(err)
+        }
+        // 插入数据
+        var datas =[]BlogUser{
+            {Username:"小唐", Age: 0, Price: 12.30, Description: "广东省深圳市松白路", GroupID: 1},
+            {Username:"小明", Age: 13, Price: 30.00, Description: "美国洛杉矶", GroupID: 1},
+            {Username:"小章",Age: 70, Price: 89.00, Description: "英国伦敦", GroupID: 3},
+            {Username:"王小名", Age: 40, Price: 45.00, Description: "法国巴黎", GroupID: 2},
+            {Username:"艾伦", Age: 1, Price: 14.00, Description: "古巴比伦", GroupID: 2},
+            {Username:"李冰", Age: 36, Price: 45.63, Description: "中国上海", GroupID: 1},
+        }
+        db.Create(&datas)   // 创建结果更新在datas, 比如每行记录的id
+        db.Create(&[]BlogGroup{
+            {ID: 1, GroupName: "中学组"}, {ID: 2,GroupName: "大学组"}, {ID: 3,GroupName: "小学组"},
+        })
 
-    // 查询
-	var user BlogUser
-	db.First(&user) // SELECT * FROM users ORDER BY id LIMIT 1;
-	db.Last(&user)  // SELECT * FROM users ORDER BY id DESC LIMIT 1;
-	var users []BlogUser
-	db.Find(&users) // SELECT * FROM users;
-	// 条件查询
-	db.Where("username != ?", "小唐").Find(&users)
-	db.Where("username = ?", "小唐").Find(&users)
-	db.Where("username like ?", "%小%").Find(&users)
-	db.Where("username in ?", []string{"小唐", "小明"}).Find(&users)
-	db.Where("age between ? and ? ", 0, 50).Find(&users)
-	db.Where("age > ? or age < ? ", 50, 10).Find(&users)
-	db.Where("age > ? or age < ? ", 50, 10).Find(&users)
-	// 排序与分页
-	db.Order("age desc, username").Limit(2).Offset(0).Find(&users)
-	// 分组与聚合函数
-	type Result struct {
-		GroupID string
-		Total   uint
-	}
-	var results []Result
-	db.Table("blog_users").Select("group_id, sum(age) as total").Group("group_id").Having("group_id = ?", 1).Scan(&results)
-	//fmt.Printf("%+v", results)
-	// 去重
-	db.Distinct("group_id").Find(&users)
-	// 多表查询
-	type TwoResult struct {
-		ID        uint
-		Username  string
-		GroupID   uint
-		GroupName string
-	}
-	var twoResults []TwoResult
-	db.Table("blog_users").Select("blog_users.id, blog_users.username, blog_users.group_id , blog_groups.group_name").
-		Joins("inner join blog_groups on blog_users.group_id = blog_groups.id").Scan(&twoResults)
-    // 衍生表
-	subTable:= db.Table("blog_users").Select("max(age) as max_age, group_id").Group("group_id")
-	db.Table("blog_users").Select("blog_users.id, blog_users.age, blog_users.username, blog_users.group_id").
-		Joins("inner join (?) q on blog_users.age = q.max_age", subTable).Scan(&users)
-	fmt.Printf("%+v", users)
-    // 子查询
-	type S struct {
-		AvgAge float32
-	}
-	subQuery:= db.Table("blog_users").Select("avg(age) as avg_age")
-	db.Where("age > (?)", subQuery).Find(&users)
-	fmt.Printf("%+v", users)
-}
+        // 查询
+        var user BlogUser
+        db.First(&user) // SELECT * FROM users ORDER BY id LIMIT 1;
+        db.Last(&user)  // SELECT * FROM users ORDER BY id DESC LIMIT 1;
+        var users []BlogUser
+        db.Find(&users) // SELECT * FROM users;
+        // 条件查询
+        db.Where("username != ?", "小唐").Find(&users)
+        db.Where("username = ?", "小唐").Find(&users)
+        db.Where("username like ?", "%小%").Find(&users)
+        db.Where("username in ?", []string{"小唐", "小明"}).Find(&users)
+        db.Where("age between ? and ? ", 0, 50).Find(&users)
+        db.Where("age > ? or age < ? ", 50, 10).Find(&users)
+        db.Where("age > ? or age < ? ", 50, 10).Find(&users)
+        // 排序与分页
+        db.Order("age desc, username").Limit(2).Offset(0).Find(&users)
+        // 分组与聚合函数
+        type Result struct {
+            GroupID string
+            Total   uint
+        }
+        var results []Result
+        db.Table("blog_users").Select("group_id, sum(age) as total").Group("group_id").Having("group_id = ?", 1).Scan(&results)
+        //fmt.Printf("%+v", results)
+        // 去重
+        db.Distinct("group_id").Find(&users)
+        // 多表查询
+        type TwoResult struct {
+            ID        uint
+            Username  string
+            GroupID   uint
+            GroupName string
+        }
+        var twoResults []TwoResult
+        db.Table("blog_users").Select("blog_users.id, blog_users.username, blog_users.group_id , blog_groups.group_name").
+            Joins("inner join blog_groups on blog_users.group_id = blog_groups.id").Scan(&twoResults)
+        // 衍生表
+        subTable:= db.Table("blog_users").Select("max(age) as max_age, group_id").Group("group_id")
+        db.Table("blog_users").Select("blog_users.id, blog_users.age, blog_users.username, blog_users.group_id").
+            Joins("inner join (?) q on blog_users.age = q.max_age", subTable).Scan(&users)
+        fmt.Printf("%+v", users)
+        // 子查询
+        type S struct {
+            AvgAge float32
+        }
+        subQuery:= db.Table("blog_users").Select("avg(age) as avg_age")
+        db.Where("age > (?)", subQuery).Find(&users)
+        fmt.Printf("%+v", users)
 
-```
+        // 更新与删除
+        // 更新
+        db.Model(BlogUser{}).Where("id = ?", 16).Updates(BlogUser{Username: "铁拐李", Age: 75})
+        // 软删除: UPDATE `blog_users` SET `deleted_at`='2023-04-09 12:12:59.69' WHERE `blog_users`.`id` = 17 AND `blog_users`.`deleted_at` IS NULL
+        db.Delete(&BlogUser{}, 15)
+        // 查询软删除数据
+        var result BlogUser
+        db.Unscoped().Where("id = ? ", 15).Find(&result)
+        fmt.Printf("\n%+v", result)
+        // 硬删除: DELETE from blog_users where id = 15;
+        db.Unscoped().Delete(&BlogUser{}, 15)
+    }
+    ```
+
+
+
+    
