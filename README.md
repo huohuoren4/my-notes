@@ -17,3 +17,4 @@
 ---
 #### 3. 补充内容
 - pytorch博客: https://blog.csdn.net/mengxianglong123/article/details/126034288
+- python3 unittest模块解析：https://blog.csdn.net/qq_41437305/article/details/96368903
