@@ -19,3 +19,4 @@
 - pytorch博客: https://blog.csdn.net/mengxianglong123/article/details/126034288
 - python3 unittest模块解析：https://blog.csdn.net/qq_41437305/article/details/96368903
 - python技术博客：https://www.cnblogs.com/wdliu/category/934310.html?page=1
+- python HTTP代理：https://blog.csdn.net/xuezhangjun0121/article/details/128871916
