@@ -21,14 +21,4 @@
 - python技术博客：https://www.cnblogs.com/wdliu/category/934310.html?page=1
 - python HTTP代理：https://blog.csdn.net/xuezhangjun0121/article/details/128871916
 
-#### 4. 本周计划
-- pytest文档：
-    - 英文文档复制：100%
-    - 超链接完善：30%
-    - 中文文档的翻译：0%
-
-- flask文档：
-    - 英文文档复制：0%
-    - 超链接完善：0%
-    - 中文文档的翻译：0%
 
