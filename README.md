@@ -12,7 +12,7 @@
 ##### 2.4 接口自动化开源项目
 - 接口自动化框架: [pytest-auto-api2](https://gitee.com/yu_xiao_qi/pytest-auto-api2?_from=gitee_search)
   - [接口自动化框架技术博客](https://blog.csdn.net/weixin_43865008/article/details/123904871?spm=1001.2014.3001.5501)
-- web 自动化框架:  [WebUIAutoTest](https://gitee.com/azhengzz/WebUIAutoTest?_from=gitee_search)
+- web 自动化框架:  <https://gitee.com/wxhou/web-demotest.git>
 
 ---
 #### 3. 补充内容
