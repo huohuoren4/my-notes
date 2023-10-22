@@ -2217,7 +2217,9 @@
         assert 1 == 2  # 断言失败不会执行
     ``` 
 ---
+
 #### 5. UI 自动化测试
+
 ##### 5.1 Selenium 的常用方法
 - Selenium 基本知识
     ```python
@@ -2340,33 +2342,31 @@
 
 ##### 5.2 Selenium 进阶知识
 
-##### 5.3 autotest 框架
-- autotest 框架文件树
-    ```shell
-    Autotest 框架 
-    ├─common                          
-    ├─config                          
-    ├─page                            
-    ├─page_element                    
-    │  └─ief                          
-    │      └─ui_ief                   
-    ├─page_object                     
-    │  └─ief                          
-    │      └─ui_ief                   
-    ├─script                          
-    ├─TestCase                        
-    │  └─ief                          
-    │      └─ui_ief                   
-    │          ├─edge_application     
-    │          └─fixture              
-    ├─TestData                        
-    │  └─ief                          
-    │      └─ui_ief                   
-    └─utils
-    ```
----
+##### 5.3 谷歌浏览器
+
+-  安装谷歌浏览器
+
+    点击安装文件自动进行安装，这里安装的版本为 `103.0.5060.53`
+    [下载谷歌浏览器](https://www.slimjet.com/chrome/google-chrome-old-version.php)
+
+- 停止谷歌浏览器的更新
+
+    主要思路：禁用谷歌浏览器更新文件夹的读写权限
+    a. 103版本的更新文件夹为 `C:\Program Files (x86)\Google\Update`
+    b. 右击`Update`文件夹 > 配置 > "安全"选项卡 > 选中`ALL APPLICATION PACKAGES`, 勾选下面的所有拒绝复选框, 点击确定
+    c. 再点击"高级" > 点击"禁用继承", 最后允许类型的权限都会被删除，拒绝类型的权限会保留
+
+- 安装chromedriver
+
+    a. 安装103版本的chromedriver, 这里选择版本：`103.0.5060.53`。如果系统为Windows，没有win64就选择win32。其他系统选择对应的版本
+    [下载chromedriver](https://registry.npmmirror.com/binary.html?path=chromedriver)
+    b. 解压安装包后，将下载好的`chromedriver.exe`放在python安装根目录下，与`python.exe`同级目录
+
+
 #### 6. 接口自动化测试
+
 ##### 6.1 Postman 实现接口自动化
+
 - postman 脚本
     ```javascript
     // 设置获取环境变量
