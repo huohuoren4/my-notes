@@ -124,7 +124,7 @@
     # description: 安装 maven3.8
     # 下载安装包
     read -p "请将 maven3.8 安装包放在 $HOME 目录下" sss
-    # wget https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz -O  $HOME/apache-maven-3.8.6-bin.tar.gz
+    wget https://mirrors.huaweicloud.com/apache/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz -O  $HOME/apache-maven-3.8.6-bin.tar.gz
     tar -zxvf  $HOME/apache-maven-3.8.6-bin.tar.gz
     # 设置快捷方式
     mv $HOME/apache-maven-3.8.6 /usr/local/

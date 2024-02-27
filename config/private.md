@@ -13,6 +13,10 @@
    - 账号：`hwstaff_lihui`
    - IAM账号：`hwstaff_subuser_CCE_wwx1182966`
    - 密码：`Ecsnba@#12345.$`
+   - 跳板机
+     - centos: 122.9.4.240:30022 root/SIgGqCm^LJudBx30
+     - windows: 122.9.4.240:3389 Administrator
+       - 个人账号: wwx1182966/WWX@@123456
 
 ### 开源社区
 
