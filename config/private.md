@@ -14,9 +14,10 @@
    - IAM账号：`hwstaff_subuser_CCE_wwx1182966`
    - 密码：`Ecsnba@#12345.$`
    - 跳板机
-     - centos: 122.9.4.240:30022 root/SIgGqCm^LJudBx30
+     - centos: 122.9.4.240:30022 root/SIgGqCm^LJudBx30 
      - windows: 122.9.4.240:3389 Administrator
        - 个人账号: wwx1182966/WWX@@123456
+     - CCE集群可用节点: 192.168.1.94
 
 ### 开源社区
 

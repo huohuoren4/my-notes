@@ -1,0 +1,7 @@
+# nginx-ingress
+
+#### nginx-ingress实现金丝雀发布
+参考链接：<https://support.huaweicloud.com/bestpractice-cce/cce_bestpractice_10003.html>
+以上注解规则会按优先级进行评估，优先级为：canary-by-header -> canary-by-cookie -> canary-weight。如果存在多个canary Ingress, 只会有一个canary Ingress规则生效，其他canary Ingress规则会被忽略
+
+测试cpu的命令脚本: `start_time=$(date +%s) ; while [ $[ $start_time + 10 ] -ge $(date +%s) ]; do echo "$(date) running"; done; echo "stop running"; sleep 1000`
