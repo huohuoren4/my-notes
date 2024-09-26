@@ -22,8 +22,8 @@
 - python HTTP代理：https://blog.csdn.net/xuezhangjun0121/article/details/128871916
 
 #### 4. 代理配置
-- https://blog.csdn.net/m0_64118193/article/details/129049643
-- https://blog.csdn.net/hzblucky1314/article/details/129450272
-- https://blog.csdn.net/m0_61544599/article/details/128903438
+```shell
+helm install --wait --generate-name  -n gpu-operator --create-namespace  nvidia/gpu-operator --version v24.6.2  --set driver.version=535.161.08
+```
 
 
