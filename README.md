@@ -23,7 +23,7 @@
 
 #### 4. 代理配置
 ```shell
-helm install --wait --generate-name  -n gpu-operator --create-namespace  nvidia/gpu-operator --version v24.6.2  --set driver.version=535.161.08
+helm install --wait --generate-name  -n gpu-operator --create-namespace  nvidia/gpu-operator --version v24.6.2  --set driver.version=535.161.08  --set mig.strategy=single
 ```
 
 
