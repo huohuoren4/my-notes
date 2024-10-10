@@ -27,6 +27,7 @@ http://192.168.0.184:8080/prometheusalert?type=dd&tpl=prometheus-dd&ddurl=https:
 ```
 ##### test
 ```yaml
+https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens
 dex.example.com
 
 5. 修改apiserver
