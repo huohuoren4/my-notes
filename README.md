@@ -28,6 +28,15 @@ http://192.168.0.184:8080/prometheusalert?type=dd&tpl=prometheus-dd&ddurl=https:
 ##### test
 ```yaml
 dex.example.com
+
+5. 修改apiserver
+所有master节点修改/etc/kubernetes/manifests/kube-apiserver.yaml的启动参数
+
+- --oidc-issuer-url=https://dex.example.com:32000
+- --oidc-client-id=kubernetes
+- --oidc-ca-file=/etc/kubernetes/ssl/ca.pem
+- --oidc-username-claim=email
+- --oidc-groups-claim=groups
 ```
 
 ```
