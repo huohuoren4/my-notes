@@ -23,7 +23,7 @@
 
 #### 4. 代理配置
 ```shell
-helm install --wait --generate-name  -n gpu-operator --create-namespace  nvidia/gpu-operator --version v24.6.2  --set driver.version=535.161.08  --set mig.strategy=single
+http://192.168.0.184:8080/prometheusalert?type=dd&tpl=prometheus-dd&ddurl=https://oapi.dingtalk.com/robot/send?access_token=f0089d1196f8900b9d7e02306a74058c333ff0114e0243c25da625b262293009
 ```
 ##### test
 ```yaml
