@@ -388,6 +388,7 @@ kubectl create secret tls -n dex dex.example.com.tls \
 ```
 
 2. 生成github 密钥
+创建一个新的OAuth APP: https://github.com/settings/developers
 ```shell
 GITHUB_CLIENT_ID=Ov23ctCcjLa57VXg4NZg
 GITHUB_CLIENT_SECRET=870e71a8abfd1be517ff9ed162bbd49ac625b1d8
