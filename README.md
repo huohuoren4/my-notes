@@ -375,7 +375,7 @@ data:
 ```
 
 dex.md
-```
+
 1. 创建证书
 ```shell
 kubectl create ns dex
@@ -399,10 +399,11 @@ kubectl -n dex create secret \
 3. 部署dex应用
 
 4. 部署gangway应用
-
+```
 a. 创建密钥：kubectl create cm dex-cacert --from-file=ca.pem -n dex
 b. kubectl -n dex create secret generic gangway-key \
   --from-literal=sessionkey=$(openssl rand -base64 32)
+```
 
 5. 修改apiserver
 所有master节点修改/etc/kubernetes/manifests/kube-apiserver.yaml的启动参数
@@ -428,5 +429,5 @@ roleRef:
   name: cluster-admin
   apiGroup: rbac.authorization.k8s.io
 ```
-```
+
 
