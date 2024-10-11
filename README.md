@@ -10,16 +10,14 @@
 - win10 hosts文件路径: `C:/windows/system32/drivers/etc`
 
 ##### 2.4 接口自动化开源项目
-- 接口自动化框架: [pytest-auto-api2](https://gitee.com/yu_xiao_qi/pytest-auto-api2?_from=gitee_search)
-  - [接口自动化框架技术博客](https://blog.csdn.net/weixin_43865008/article/details/123904871?spm=1001.2014.3001.5501)
-- web 自动化框架:  <https://gitee.com/wxhou/web-demotest.git>
+- dex: https://dexidp.io/docs/guides/kubernetes/
 
 ---
 #### 3. 补充内容
-- pytorch博客: https://blog.csdn.net/mengxianglong123/article/details/126034288
+- [pytorch博客: https://blog.csdn.net/mengxianglong123/article/details/126034288
 - python3 unittest模块解析：https://blog.csdn.net/qq_41437305/article/details/96368903
 - python技术博客：https://www.cnblogs.com/wdliu/category/934310.html?page=1
-- python HTTP代理：https://blog.csdn.net/xuezhangjun0121/article/details/128871916
+- python HTTP代理：https://blog.csdn.net/xuezhangjun0121/article/details/128871916](https://dexidp.io/docs/guides/kubernetes/)
 
 #### 4. 代理配置
 ```shell
