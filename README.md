@@ -7,8 +7,7 @@
 
 ##### test
 ```yaml
-https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens
-dex.example.com
+https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html#
 
 5. 修改apiserver
 所有master节点修改/etc/kubernetes/manifests/kube-apiserver.yaml的启动参数
