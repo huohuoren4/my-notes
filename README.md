@@ -4,6 +4,41 @@
 
 ##### 开源项目
 - dex: https://dexidp.io/docs/guides/kubernetes/
+```
+
+echo "-----BEGIN CERTIFICATE-----
+MIIDDzCCAfegAwIBAgIBADANBgkqhkiG9w0BAQsFADApMRkwFwYDVQQKExBDQ0Ug
+VGVjaG5vbG9naWVzMQwwCgYDVQQDEwNDQ0UwHhcNMjQxMDE0MTQ1MjQzWhcNNDQx
+MDE0MTQ1MjQzWjApMRkwFwYDVQQKExBDQ0UgVGVjaG5vbG9naWVzMQwwCgYDVQQD
+EwNDQ0UwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCvyeUOXfkUV2SO
+VMAVzncsRYMIf3Rx2SeivdzZn85XNeRJZ4yKp5ykOXHbL5LSMDy+WIKfsIKuDeJR
+XWS3JtJuoyzy4FnpRl/wNoZyM/TvmGWTAgIRLxwYxkph61zhAxLPZn5qCsvaezDV
+lqBx56kwblH/xh8D0vnSKLfUA79Hm9sKwtPoc5gWnmqqzwHs5dx+ALXJJ3Y0taMc
+fDaMSGzCwWCmYDjhPSysiiNkXbKRrsIKxl+bg7go9TIi5EgGUT8KOqojDsIfKS8r
+F/yq3x8QIUMKPs2fii2vnhmwHIdBI+WjxZeyS7EWngFz/YxRFCsRH6mlqlhzGG2v
+rBoJ+UTVAgMBAAGjQjBAMA4GA1UdDwEB/wQEAwICpDAPBgNVHRMBAf8EBTADAQH/
+MB0GA1UdDgQWBBSoHuT2PXo1+f+89yhifpo1fDGHCTANBgkqhkiG9w0BAQsFAAOC
+AQEADPhyDSAZMp7h/PPBUzBsNDSzk+bzoujdswAwGOYKGkyZK6/kUJ87X9NxMOBG
+ajtER9ZI0AkOzmOQGXZFvGUmG1PXYvs2mk/DY4h/+NgFaQ1rhscLXIAogPwRazmg
+zmOoV6SPbxD26tY6fP/zIeRTCwZwIHmeF7jbJqE7HvQbcFYM/rUAXF4rMeH/WtO1
+a1p6HOO2RHuqHTk2tzcqxbUgRn3BwGMwiiveP4BVs6US6ss4elOkl/lRVo8wORlB
+PPP71uSecilPYt/wJqZV0t0ltbiZT3YiAsqhS+qCjOFTpX1e44SKs298cawYtj5o
+gknFGA7BaVGZiqwKXZZqRtcqkA==
+-----END CERTIFICATE-----
+" \ > ca-int32bit-gangway-cluster.pem
+kubectl config set-cluster int32bit-gangway-cluster --server=https://192.168.0.164:5443 --certificate-authority=ca-int32bit-gangway-cluster.pem --embed-certs
+kubectl config set-credentials huohuoren4@int32bit-gangway-cluster  \
+    --auth-provider=oidc  \
+    --auth-provider-arg='idp-issuer-url=https://dex.uol-cce-poc.duck.tec.br'  \
+    --auth-provider-arg='client-id=kubernetes'  \
+    --auth-provider-arg='client-secret=ZXhhbXBsZS1hcHAtc2VjcmV0' \
+    --auth-provider-arg='refresh-token=ChlzeXdpenk2am82NWhxbGl1N3dlY3gzbmxwEhlnNTVjYzMzdGs3d2ppYWFpbWNnc2Q0NGZi' \
+    --auth-provider-arg='id-token=eyJhbGciOiJSUzI1NiIsImtpZCI6IjI5NGFkZmZlMDcwMDkxYWJiM2Y4Nzk3MGFkNGE2NmJmODFhZGY2MzQifQ.eyJpc3MiOiJodHRwczovL2RleC51b2wtY2NlLXBvYy5kdWNrLnRlYy5iciIsInN1YiI6IkNnZ3pORE16TVRFd01CSUdaMmwwYUhWaSIsImF1ZCI6Imt1YmVybmV0ZXMiLCJleHAiOjE3MjkwNjUwMjMsImlhdCI6MTcyODk3ODYyMywiYXRfaGFzaCI6IjhBVks5R1ZjaDQ2OWI4R0NwZnFqb0EiLCJjX2hhc2giOiJMajcxenRwcUlZaXNOdEp0M05jVlZ3IiwiZW1haWwiOiI2NzQ4NjAzNTdAcXEuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJodW9odW9yZW40IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaHVvaHVvcmVuNCJ9.aW15lq-q-j50opW5x4pKdHF5o5Pbq2u2NVKIOM01J21hPo1yBsEM6mswB-HQh9LqCpZplTpjoITo9OTWCG8seArbltHk_5VL21AZraJjIT5Jae0z_jA9vS-mchmYkCcesUbGxxdYhGBlDcgAIxGwOwF34rKqJKIELxRzksDw-IBpOhlzGvTgaJ8IGgN8Bso566dzq3KCjTQC-fT6WBR-gnIbQRj39hbM8e9xo8875zCuElLr5onVDZ9wozsaFnALzEMgB62ucvfL3qZlFa0XhXwn-2GoZ409fV1RcIHj5QeJYJ9zpbZxjmO74VwV3JEOsq2Orvm16UPac7HYthvs2g'
+kubectl config set-context int32bit-gangway-cluster --cluster=int32bit-gangway-cluster --user=huohuoren4@int32bit-gangway-cluster
+kubectl config use-context int32bit-gangway-cluster
+rm ca-int32bit-gangway-cluster.pem
+              
+```
 
 ##### test
 ```yaml
