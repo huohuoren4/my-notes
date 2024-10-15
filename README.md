@@ -7,7 +7,8 @@
 
 ##### test
 ```yaml
-https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html#
+https://dexidp.io/docs/connectors/microsoft/
+
 
 121.36.91.36
 
