@@ -78,3 +78,55 @@ iuhi2KV9f9QnX83ARYmb0Aw9czg7ok1P7kDqo58Ou6ZMtY+s11q8iYjEshK1151/
 v7Pg+1MxXr9R
 -----END CERTIFICATE-----
 ```
+### dex ingress
+```
+metadata:
+  name: dex-ingress
+  namespace: dex
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - dex.uol-cce-poc.duck.tec.br
+      secretName: dex.example.com.tls
+  rules:
+    - host: dex.uol-cce-poc.duck.tec.br
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: dex
+                port:
+                  number: 5556
+            property:
+              ingress.beta.kubernetes.io/url-match-mode: STARTS_WITH
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+```
+### gangway ingress
+```
+metadata:
+  name: gangway-ingress
+  namespace: dex
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: login.uol-cce-poc.duck.tec.br
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: gangway-service
+                port:
+                  number: 8080
+            property:
+              ingress.beta.kubernetes.io/url-match-mode: STARTS_WITH
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+```
