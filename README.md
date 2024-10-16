@@ -3,6 +3,7 @@
 - [我的 Gitee](https://gitee.com/shushuiren4)
 
 ##### 开源项目
+- ldap: https://blog.csdn.net/weixin_42257195/article/details/102769495
 - dex: https://dexidp.io/docs/guides/kubernetes/
 - kubeconfig
 ```
