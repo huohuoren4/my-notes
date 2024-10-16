@@ -4,6 +4,23 @@
 
 ##### 开源项目
 - dex: https://dexidp.io/docs/guides/kubernetes/
+- kubeconfig
+```
+kubectl config set-cluster dex-cluster \
+    --server=https://192.168.0.188:5443
+
+kubectl config set-credentials 674860357-dex-cluster \
+    --auth-provider=oidc \
+    --auth-provider-arg="idp-issuer-url=https://dex.uol-cce-poc.duck.tec.br" \
+    --auth-provider-arg="client-id=kubernetes" \
+    --auth-provider-arg="client-secret=ZXhhbXBsZS1hcHAtc2VjcmV0" \
+    --auth-provider-arg="refresh-token=Chl3NHR2NmVtZTNieWt1NWV2Nm9sYWJuZTZsEhlrNnRkdGlsNHRqcDN2dnNmY2diYWtrbTYz" \
+    --auth-provider-arg="id-token=eyJhbGciOiJSUzI1NiIsImtpZCI6ImFjZDM1ZjIwZTQ5MTY3MWQwYTdjNTBlZDM3OTc3NWE2N2RlOTVmYmUifQ.eyJpc3MiOiJodHRwczovL2RleC51b2wtY2NlLXBvYy5kdWNrLnRlYy5iciIsInN1YiI6IkNnZ3pORE16TVRFd01CSUdaMmwwYUhWaSIsImF1ZCI6Imt1YmVybmV0ZXMiLCJleHAiOjE3MjkxNTY2NDgsImlhdCI6MTcyOTA3MDI0OCwiYXRfaGFzaCI6Ii1Sa0gxWEJBZ1hUYlk4ZWRUc3gyakEiLCJjX2hhc2giOiJHOGtzdFltQzFSYy1yOG1pZEdUVEFRIiwiZW1haWwiOiI2NzQ4NjAzNTdAcXEuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJodW9odW9yZW40IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiaHVvaHVvcmVuNCJ9.CTQ1tfSBXKJ6nJEjqwIJfvaPJ28X6nH1gcJe9ObmR37rUNa747JPhMSzzEzatSLnCUt32SIf0F5H0MQty8OZEidmG6VTm3OHCbiEMX89XNAHyCgBVLlvX3scYe0PcqKXYBR7TrKZmRnD_bWZLFkeTI1Vbnch83hiBhPGjDZFxCMCOFIbD0Ax459NXuN0rle9x4zLnX_L1m8t2BJqLuQ0DwnozveTKDZaWixnAITLLzhzlfPEnkapSDI9ZnTwOqkMXYiiWpm_27Wx2fvTnm7t0HZOsim3BPLLAkZBahH9PajfwqbFOPnO_f8O693Nys2YewHpubKcFsnbN3XRieyVKQ"
+kubectl config set-context 674860357-dex-cluster \
+    --cluster=dex-cluster \
+    --user=674860357-dex-cluster
+
+```
 ```
 
 echo "-----BEGIN CERTIFICATE-----
