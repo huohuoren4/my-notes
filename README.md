@@ -7,7 +7,7 @@
 - dex: https://dexidp.io/docs/guides/kubernetes/
 
 ```
-https://dexidp.io/docs/connectors/ldap/
+https://github.com/mintel/dex-k8s-authenticator/blob/master/docs/config.md
 ```
 
 ##### test
