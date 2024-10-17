@@ -6,6 +6,11 @@
 - ldap: https://blog.csdn.net/weixin_42257195/article/details/102769495
 - dex: https://dexidp.io/docs/guides/kubernetes/
 
+```
+    # A raw certificate file can also be provided inline.
+    # rootCAData: ( base64 encoded PEM file )
+```
+
 ##### test
 ### 安装dexuid
 添加 Dex Helm 仓库
