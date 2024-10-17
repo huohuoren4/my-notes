@@ -7,8 +7,7 @@
 - dex: https://dexidp.io/docs/guides/kubernetes/
 
 ```
-[    # A raw certificate file can also be provided inline.
-    # rootCAData: ( base64 encoded PEM file )](https://dexidp.io/docs/connectors/ldap/)
+https://dexidp.io/docs/connectors/ldap/
 ```
 
 ##### test
