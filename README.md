@@ -8,6 +8,8 @@
 - https://github.com/osixia/docker-openldap?tab=readme-ov-file#set-your-own-environment-variables
 - https://github.com/osixia/docker-phpLDAPadmin
 
+- https://www.ldapclient.com/downloads78/LdapBrowser-7.8.x-win-x64-Setup.exe
+
 ```
 https://github.com/mintel/dex-k8s-authenticator/blob/master/docs/config.md
 ```
