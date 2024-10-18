@@ -5,6 +5,8 @@
 ##### 开源项目
 - ldap: https://blog.csdn.net/weixin_42257195/article/details/102769495
 - dex: https://dexidp.io/docs/guides/kubernetes/
+- https://github.com/osixia/docker-openldap?tab=readme-ov-file#set-your-own-environment-variables
+- https://github.com/osixia/docker-phpLDAPadmin
 
 ```
 https://github.com/mintel/dex-k8s-authenticator/blob/master/docs/config.md
