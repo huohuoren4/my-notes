@@ -9,7 +9,8 @@
 - https://github.com/osixia/docker-phpLDAPadmin
 
 - https://www.ldapclient.com/downloads78/LdapBrowser-7.8.x-win-x64-Setup.exe
-
+# 登录用户：cn=admin,dc=example,dc=com  123456
+	cn=zhang san,ou=people,dc=example,dc=com 123456
 ```
 https://github.com/mintel/dex-k8s-authenticator/blob/master/docs/config.md
 ```
