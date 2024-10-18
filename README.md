@@ -9,8 +9,7 @@
 - https://github.com/osixia/docker-phpLDAPadmin
 
 - https://www.ldapclient.com/downloads78/LdapBrowser-7.8.x-win-x64-Setup.exe
-# 登录用户：cn=admin,dc=example,dc=com  123456
-	cn=zhang san,ou=people,dc=example,dc=com 123456
+活动目录AD（Active Directory）是微软服务的核心组件。使用AD域能实现高效管理，例如批量管理用户和计算机、部署应用、更新补丁、统一文件和资源访问等。许多微软组件（例如Exchange）和故障转移集群也需要AD域环境。本文以Windows Server 2016数据中心版操作系统为例，介绍如何搭建AD域，并将客户端加入该AD域
 ```
 https://github.com/mintel/dex-k8s-authenticator/blob/master/docs/config.md
 ```
