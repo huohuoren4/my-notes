@@ -17,63 +17,58 @@ https://github.com/mintel/dex-k8s-authenticator/blob/master/docs/config.md
 部署openldap服务
 
 ```
+远程连接作为域控制器的ECS实例。
 
-ingress:
-  enabled: true
-  className: nginx
-  hosts:
-    - host: dex.uol-cce-poc.duck.tec.br
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls:
-    - secretName: dex.example.com.tls
-      hosts:
-        - dex.uol-cce-poc.duck.tec.br
+具体操作，请参见连接方式概述。
 
-config:
-  issuer: https://dex.uol-cce-poc.duck.tec.br
+打开服务器管理器。
 
-  storage:
-    type: kubernetes
-    config:
-      inCluster: true
+在桌面左下角单击搜索.jpg图标，在搜索框输入服务器管理器，然后单击服务器管理器。打开服务器管理器.png
 
-  oauth2:
-    responseTypes: ["code", "token", "id_token"]
-    skipApprovalScreen: true
+在服务器管理器中，为服务器添加角色和功能。
 
-  connectors:
-  - type: ldap
-    id: ldap
-    name: LDAP
-    config:
-      host: 192.168.0.144:389
-      insecureNoSSL: true
-      bindDN: CN=Administrator,CN=Users,DC=example,DC=com
-      bindPW: "Tonarcreares6="
-      userSearch:
-        baseDN: dc=example,dc=com
-        filter: "(objectClass=person)"
-        username: sAMAccountName
-        idAttr: sAMAccountName
-        emailAttr: mail
-        nameAttr: name
+本文以将AD域服务和DNS服务部署在同一台服务器上为例，操作步骤如下：
 
-      groupSearch:
-        baseDN: dc=example,dc=com
-        filter: "(objectClass=group)"
-        userMatchers:
-        - userAttr: distinguishedName
-          groupAttr: member
-        nameAttr: sAMAccountName
+重要
+除额外说明的配置外，部分配置步骤已省略，配置时保持默认配置，单击下一步即可。
 
+单击添加角色和功能。添加角色和功能.png
 
-  staticClients:
-    - id: kubernetes
-      secret: ZXhhbXBsZS1hcHAtc2VjcmV0
-      name: "kubernetes"
-      redirectURIs:
-      - https://login.uol-cce-poc.duck.tec.br/callback
+选择安装类型。安装类型.png
+
+选择要安装角色和功能的服务器。
+
+选择服务器.png
+
+选中要安装在服务器上的角色，即Active Directory 域服务和DNS 服务器。
+
+勾选服务器角色.png
+
+安装完成后，单击关闭。
+
+安装成功.png
+
+将ECS实例设置为域服务器。
+
+重要
+除额外说明的配置外，部分配置步骤已省略，配置时保持默认配置，单击下一步即可。
+
+单击服务器管理器右上角的警告图标.png图标，然后单击将此服务器提升为域控制器。提升为域控制器.png
+
+在Active Directory 域服务配置向导中，选择添加新林，并在根域名中设置域名。
+
+本文操作中，AD域的示例域名为example.com。根域名.png
+
+配置域服务器参数，然后单击下一步。配置域服务器参数.png
+
+配置DNS选项，然后单击下一步。配置DNS选项.png
+
+配置NetBIOS域名，然后单击下一步。配置NetBIOS域名.png
+
+检查并确认您的选择，单击下一步。确认选择.png
+
+所有先决条件都检查通过后，单击安装。单击安装.png
+
+安装完成后将自动重启该服务器，重新连接该服务器后可以在系统配置中查看安装结果，当您的DC相关信息无误时，表示安装成功，如下图所示。
 
 ```
