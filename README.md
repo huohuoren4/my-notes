@@ -12,6 +12,8 @@ metadata:
   name: my-app
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+
+Administrators
 ---
 kind: Ingress
 apiVersion: networking.k8s.io/v1
