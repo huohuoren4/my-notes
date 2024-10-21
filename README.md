@@ -12,7 +12,7 @@ metadata:
   name: my-app
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/auth-url: https://another-ldap.another.svc.cluster.local/auth
+    nginx.ingress.kubernetes.io/auth-url: https://192.168.1.189:9000/auth
     nginx.ingress.kubernetes.io/server-snippet: |
       error_page 401 = @login;
       location @login {
