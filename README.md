@@ -17,29 +17,63 @@ https://github.com/mintel/dex-k8s-authenticator/blob/master/docs/config.md
 部署openldap服务
 
 ```
-2. 部署ldap
-docker run \
--p 389:389 \
--p 636:636 \   # ssl证书认证端口
---name ldap \
---hostname openldap-host \
---env LDAP_ORGANISATION="example" \
---env LDAP_DOMAIN="example.com" \          # ldap域名
---env LDAP_ADMIN_PASSWORD="123456" \       # admin密码
---volume /root/ssl:/container/service/slapd/assets/certs \   # 挂载证书
---env LDAP_TLS_CRT_FILENAME=tls.crt \      # 服务端证书名
---env LDAP_TLS_KEY_FILENAME=tls.key \      # 客户端证书名
---env LDAP_TLS_CA_CRT_FILENAME=ca.pem \    # ca证书名
---env LDAP_TLS_VERIFY_CLIENT=never \       # 服务端不验证客户端证书
---detach osixia/openldap:1.3.0
 
-# ldap客户端工具
-docker run \
--d \
---privileged \
--p 8080:80 \
---name phpldapadmin \
---env PHPLDAPADMIN_HTTPS=false \     # 关闭https认证
---env PHPLDAPADMIN_LDAP_HOSTS=192.168.106.150 \  # LDAP服务ip或者域名
---detach osixia/phpldapadmin:0.9.0
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: dex.uol-cce-poc.duck.tec.br
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: dex.example.com.tls
+      hosts:
+        - dex.uol-cce-poc.duck.tec.br
+
+config:
+  issuer: https://dex.uol-cce-poc.duck.tec.br
+
+  storage:
+    type: kubernetes
+    config:
+      inCluster: true
+
+  oauth2:
+    responseTypes: ["code", "token", "id_token"]
+    skipApprovalScreen: true
+
+  connectors:
+  - type: ldap
+    id: ldap
+    name: LDAP
+    config:
+      host: 192.168.0.144:389
+      insecureNoSSL: true
+      bindDN: CN=Administrator,CN=Users,DC=example,DC=com
+      bindPW: "Tonarcreares6="
+      userSearch:
+        baseDN: dc=example,dc=com
+        filter: "(objectClass=person)"
+        username: sAMAccountName
+        idAttr: sAMAccountName
+        emailAttr: mail
+        nameAttr: name
+
+      groupSearch:
+        baseDN: dc=example,dc=com
+        filter: "(objectClass=group)"
+        userMatchers:
+        - userAttr: distinguishedName
+          groupAttr: member
+        nameAttr: sAMAccountName
+
+
+  staticClients:
+    - id: kubernetes
+      secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+      name: "kubernetes"
+      redirectURIs:
+      - https://login.uol-cce-poc.duck.tec.br/callback
+
 ```
