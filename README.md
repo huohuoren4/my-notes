@@ -3,12 +3,9 @@
 - [我的 Gitee](https://gitee.com/shushuiren4)
 
 ##### 开源项目
-```
-
 部署openldap服务
 
 ```
----
 kind: Ingress
 apiVersion: networking.k8s.io/v1
 metadata:
