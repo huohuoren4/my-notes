@@ -1,6 +1,11 @@
 #### 1. 👻常用网址
-- [我的 Github](https://github.com/huohuoren4)
-- [我的 Gitee](https://gitee.com/shushuiren4)
+##### 代理服务器
+```
+# 香港节点squid代理服务，部分国外网站无法登录：google, dockerhub等
+proxy_addr=http://159.138.153.190:3128
+export HTTP_PROXY=${proxy_addr}   
+export HTTPS_PROXY=${proxy_addr}    
+```
 
 ##### 开源项目
 https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
