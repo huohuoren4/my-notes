@@ -12,5 +12,21 @@ export HTTPS_PROXY=${proxy_addr}
 https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
 
 ```
-报销单号：EEA202408002900
+      bindDN: CN=Administrator,CN=Users,DC=example,DC=com
+      bindPW: "Tonarcreares6="
+      userSearch:
+        baseDN: dc=example,dc=com
+        filter: "(objectClass=person)"
+        username: sAMAccountName
+        idAttr: sAMAccountName
+        emailAttr: mail
+        nameAttr: name
+
+      groupSearch:
+        baseDN: dc=example,dc=com
+        filter: "(objectClass=group)"
+        userMatchers:
+        - userAttr: distinguishedName
+          groupAttr: member
+        nameAttr: sAMAccountName
 ```
