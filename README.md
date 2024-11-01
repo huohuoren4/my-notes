@@ -12,21 +12,16 @@ export HTTPS_PROXY=${proxy_addr}
 https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
 
 ```
-      bindDN: CN=Administrator,CN=Users,DC=example,DC=com
-      bindPW: "Tonarcreares6="
-      userSearch:
-        baseDN: dc=example,dc=com
-        filter: "(objectClass=person)"
-        username: sAMAccountName
-        idAttr: sAMAccountName
-        emailAttr: mail
-        nameAttr: name
-
-      groupSearch:
-        baseDN: dc=example,dc=com
-        filter: "(objectClass=group)"
-        userMatchers:
-        - userAttr: distinguishedName
-          groupAttr: member
-        nameAttr: sAMAccountName
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: "l3-egress-rule"
+spec:
+  endpointSelector:
+    matchLabels:
+      role: frontend
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        role: backend
 ```
