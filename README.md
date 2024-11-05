@@ -12,12 +12,35 @@ export HTTPS_PROXY=${proxy_addr}
 https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
 
 ```
-http://dex.dex.svc.cluster.local:5556
-
-
-curl 10.247.123.63:5556/.well-known/openid-configuration
-
-
-
-192.168.0.188 
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: web
+spec:
+  serviceName: "nginx"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: nginx
+        image: gcr.io/google_containers/nginx-slim:0.8
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: my-storage-class
+      resources:
+        requests:
+          storage: 1Gi
 ```
