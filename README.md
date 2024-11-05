@@ -13,4 +13,7 @@ https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
 
 ```
 http://dex.dex.svc.cluster.local:5556
+
+
+curl 10.247.123.63:5556/.well-known/openid-configuration
 ```
