@@ -12,16 +12,5 @@ export HTTPS_PROXY=${proxy_addr}
 https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
 
 ```
-apiVersion: "cilium.io/v2"
-kind: CiliumNetworkPolicy
-metadata:
-  name: "l3-egress-rule"
-spec:
-  endpointSelector:
-    matchLabels:
-      role: frontend
-  egress:
-  - toEndpoints:
-    - matchLabels:
-        role: backend
+http://dex.dex.svc.cluster.local:5556
 ```
