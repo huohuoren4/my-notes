@@ -12,35 +12,27 @@ export HTTPS_PROXY=${proxy_addr}
 https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
 
 ```
-apiVersion: apps/v1beta1
-kind: StatefulSet
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: web
+  name: dex-internal
+  namespace: dex
 spec:
-  serviceName: "nginx"
-  replicas: 3
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      terminationGracePeriodSeconds: 10
-      containers:
-      - name: nginx
-        image: gcr.io/google_containers/nginx-slim:0.8
-        ports:
-        - containerPort: 80
-          name: web
-        volumeMounts:
-        - name: www
-          mountPath: /usr/share/nginx/html
-  volumeClaimTemplates:
-  - metadata:
-      name: www
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: my-storage-class
-      resources:
-        requests:
-          storage: 1Gi
+  ingressClassName: nginx
+  rules:
+  - host: dex.matheus.duck.tec.br
+    http:
+      paths:
+      - backend:
+          service:
+            name: dex
+            port:
+              number: 5556
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - dex.matheus.duck.tec.br
+    secretName: dex.matheus.duck.tec.br
+
 ```
