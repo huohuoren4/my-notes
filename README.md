@@ -13,23 +13,5 @@ https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
 
 # ca 证书
 ```
-{
-	"annotations": {},
-	"parameterSyncStrategy": "ensureConsistent",
-	"servers": [
-		{
-			"plugins": [
-				{
-					"name": "bind",
-					"parameters": "{$POD_IP}"
-				},
-				{
-					"configBlock": "192.168.0.188 dex.internal.com\nfallthrough",
-					"name": "hosts"
-				},
-				{
-					"configBlock": "servfail 5s",
-					"name": "cache",
-					"parameters": 30
-				},
+ba885f70-9226-11ef-bd40-0255ac10023a
 ```
