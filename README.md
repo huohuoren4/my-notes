@@ -11,8 +11,7 @@ export HTTPS_PROXY=${proxy_addr}
 ##### 开源项目
 https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
 
-# ca 证书
-```
+
 # 修改插件yaml
 
 kubectl -n kube-system edit deploy cilium-operator
@@ -51,4 +50,3 @@ kubectl -n kube-system edit ds yangtse-cilium
 
 ```
 
-```
