@@ -51,6 +51,95 @@ kubectl -n kube-system edit ds yangtse-cilium
 ```
 # 创建应用
 ```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: nginx
+        version: v1
+    spec:
+      containers:
+        - name: container-1
+          image: nginx:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 50Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+  replicas: 1
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: test
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: test
+        version: v1
+    spec:
+      containers:
+        - name: container-1
+          image: nginx:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 50Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+  replicas: 1
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test02
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: test02
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: test02
+        version: v1
+    spec:
+      containers:
+        - name: container-1
+          image: nginx:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+              memory: 50Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+  replicas: 1
+
 ```
 # 创建networkpolicy网络策略
 
