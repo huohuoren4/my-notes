@@ -145,23 +145,6 @@ spec:
 
 创建网络策略
 ```yaml
-apiVersion: cilium.io/v2
-kind: CiliumClusterwideNetworkPolicy
-metadata:
-  name: "internal-nginx-http"
-spec:
-  description: "Allow nginx http port"
-  ingress:
-  - fromEndpoints:
-    - matchLabels:
-        k8s:io.kubernetes.pod.namespace: default
-        app: test
-    toPorts:
-      - ports:
-          - port: "80"
-            protocol: TCP
-  endpointSelector:
-    matchLabels:
-      app: nginx
+In the browser, dex.matheus.xxx dns resolves to elb's public ip. In the cluster, dex.matheus.xxx dns resolves to elb's private ip.
 ```
 
