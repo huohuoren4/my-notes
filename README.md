@@ -145,50 +145,86 @@ spec:
 
 创建网络策略
 ```yaml
-server {
-    listen       80;
-    listen  [::]:80;
-    server_name  localhost;
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-nginx
+  namespace: elk
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      project: www
+      app: php-demo
+  template:
+    metadata:
+      labels:
+        project: www
+        app: php-demo
+    spec:
+      imagePullSecrets:
+      - name: default-secret
+      containers:
+      - name: nginx
+        image: nginx:perl
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: web
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        volumeMounts:
+        - name: nginx-logs
+          mountPath: /var/log/nginx/
+      - name: fluent-bit
+        image: cr.fluentbit.io/fluent/fluent-bit:3.2.1
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 250m
+            memory: 500Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+        - name: fluent-bit-config
+          mountPath: /fluent-bit/etc/fluent-bit.conf
+          subPath: fluent-bit.conf
+        - name: nginx-logs
+          mountPath: /var/log/nginx/
+      volumes:
+      - name: nginx-logs
+        emptyDir: {}
+      - name: fluent-bit-config
+        configMap:
+          name: fluent-bit-nginx-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-nginx-config
+  namespace: elk
 
-    #access_log  /var/log/nginx/host.access.log  main;
+data:
+  fluent-bit.conf: |-
+    [INPUT]
+        Name tail
+        Path /var/log/nginx/*.log
+        Tag nginx
 
-    location / {
-        root   /usr/share/nginx/html;
-        index  index.html index.htm;
-    }
-
-    #error_page  404              /404.html;
-
-    # redirect server error pages to the static page /50x.html
-    #
-    error_page   500 502 503 504  /50x.html;
-    location = /50x.html {
-        root   /usr/share/nginx/html;
-    }
-
-    # proxy the PHP scripts to Apache listening on 127.0.0.1:80
-    #
-    #location ~ \.php$ {
-    #    proxy_pass   http://127.0.0.1;
-    #}
-
-    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
-    #
-    #location ~ \.php$ {
-    #    root           html;
-    #    fastcgi_pass   127.0.0.1:9000;
-    #    fastcgi_index  index.php;
-    #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
-    #    include        fastcgi_params;
-    #}
-
-    # deny access to .htaccess files, if Apache's document root
-    # concurs with nginx's one
-    #
-    #location ~ /\.ht {
-    #    deny  all;
-    #}
-}
+    [OUTPUT]
+        Name  es
+        Match *
+        Host  192.168.2.3
+        Port  9200
+        Index my_index
+        Type  my_type
 
 ```
 
