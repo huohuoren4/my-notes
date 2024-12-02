@@ -15,12 +15,9 @@ https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
 # 修改插件yaml
 
 ```
-docker login -u cn-north-4@ZKCGOV77QO2ZU7SR8AHW -p 84bf692d3a48617e534cafd2fe0a4c2fae6300edf9658d5dd1cd4967237a5d3f \
-    swr.cn-north-4.myhuaweicloud.com
-images="kibana:7.12.1 elasticsearch:7.12.1";
-image_url="swr.cn-north-4.myhuaweicloud.com/testapp"
-for image in ${images}; do \
-docker pull $image && docker tag $image ${image_url}/$image &&  docker push  ${image_url}/$image; done; 
+https://docs.datadoghq.com/containers/kubernetes/installation/?tab=helm
+https://docs.fluentbit.io/manual/installation/kubernetes
+https://prometheus.io/docs/introduction/overview/
 ```
 
 
