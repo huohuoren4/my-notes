@@ -15,9 +15,27 @@ https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
 # 修改插件yaml
 
 ```
-https://docs.datadoghq.com/containers/kubernetes/installation/?tab=helm
-https://docs.fluentbit.io/manual/installation/kubernetes
-https://prometheus.io/docs/introduction/overview/
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    component: apiserver
+    provider: kubernetes
+  name: kubernetes
+  namespace: default
+spec:
+  clusterIP: 10.247.0.1
+  clusterIPs:
+  - 10.247.0.1
+  internalTrafficPolicy: Cluster
+  ports:
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 5444
+  sessionAffinity: None
+  type: ClusterIP
+
 ```
 
 
