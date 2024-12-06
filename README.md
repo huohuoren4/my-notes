@@ -14,28 +14,22 @@ https://github.com/dignajar/another-ldap/archive/refs/heads/main.zip
 
 # 修改插件yaml
 
-```
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    component: apiserver
-    provider: kubernetes
-  name: kubernetes
-  namespace: default
-spec:
-  clusterIP: 10.247.0.1
-  clusterIPs:
-  - 10.247.0.1
-  internalTrafficPolicy: Cluster
-  ports:
-  - name: https
-    port: 443
-    protocol: TCP
-    targetPort: 5444
-  sessionAffinity: None
-  type: ClusterIP
+# 创建命名空间
+kubectl create namespace cribl-stream
+# 添加cribl仓库
+helm repo add cribl https://criblio.github.io/helm-charts/
 
+# 安装cribl-leader
 ```
+helm install ls-leader cribl/logstream-leader \
+  --set config.scName='csi-disk' \
+   -n cribl-stream
+```
+
+# 安装cribl-worker
+```
+helm install ls-wg-pci cribl/logstream-workergroup -n cribl-stream
+```
+
 
 
